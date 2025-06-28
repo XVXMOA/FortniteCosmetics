@@ -14,6 +14,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
+  const [isMouseOverMap, setIsMouseOverMap] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +41,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   };
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.25, 0.25));
+    setZoom(prev => Math.max(prev - 0.25, 1)); // Changed minimum from 0.25 to 1
   };
 
   const handleReset = () => {
@@ -49,6 +50,9 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
+    // Only handle wheel events when mouse is over the map
+    if (!isMouseOverMap) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -61,7 +65,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
     
     // Calculate zoom factor based on wheel delta
     const delta = -e.deltaY * 0.002;
-    const newZoom = Math.min(Math.max(zoom + delta, 0.25), 4);
+    const newZoom = Math.min(Math.max(zoom + delta, 1), 4); // Changed minimum from 0.25 to 1
     
     if (newZoom !== zoom) {
       // Calculate zoom point relative to current position
@@ -171,6 +175,15 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
     setIsDragging(false);
   };
 
+  const handleMouseEnter = () => {
+    setIsMouseOverMap(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsMouseOverMap(false);
+    setIsDragging(false);
+  };
+
   // Reset position when zoom changes to prevent getting stuck
   useEffect(() => {
     if (zoom <= 1) {
@@ -194,7 +207,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
         <div className="flex justify-center mb-4 gap-2">
           <Button
             onClick={handleZoomOut}
-            disabled={zoom <= 0.25}
+            disabled={zoom <= 1} // Updated to reflect new minimum
             variant="outline"
             size="sm"
             className="bg-slate-700/50 border-purple-500/30 text-white hover:bg-slate-600/50"
@@ -233,7 +246,8 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
