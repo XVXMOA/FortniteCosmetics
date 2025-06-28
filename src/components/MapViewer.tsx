@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,11 +36,11 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   };
 
   const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.25, 3));
+    setZoom(prev => Math.min(prev + 0.25, 4));
   };
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.25, 0.5));
+    setZoom(prev => Math.max(prev - 0.25, 0.25));
   };
 
   const handleReset = () => {
@@ -48,42 +50,124 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY * -0.001;
-    const newZoom = Math.min(Math.max(zoom + delta, 0.5), 3);
-    setZoom(newZoom);
+    e.stopPropagation();
+    
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Calculate zoom factor based on wheel delta
+    const delta = -e.deltaY * 0.002;
+    const newZoom = Math.min(Math.max(zoom + delta, 0.25), 4);
+    
+    if (newZoom !== zoom) {
+      // Calculate zoom point relative to current position
+      const zoomRatio = newZoom / zoom;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      // Adjust position to zoom towards mouse cursor
+      const newX = position.x - (mouseX - centerX - position.x) * (zoomRatio - 1);
+      const newY = position.y - (mouseY - centerY - position.y) * (zoomRatio - 1);
+      
+      // Apply boundaries
+      const maxX = (rect.width * (newZoom - 1)) / 2;
+      const maxY = (rect.height * (newZoom - 1)) / 2;
+      
+      setPosition({
+        x: Math.min(Math.max(newX, -maxX), maxX),
+        y: Math.min(Math.max(newY, -maxY), maxY)
+      });
+      
+      setZoom(newZoom);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoom > 1) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
-      });
-    }
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+    setLastMousePos({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && zoom > 1) {
-      const newX = e.clientX - dragStart.x;
-      const newY = e.clientY - dragStart.y;
+    if (!isDragging) return;
+    
+    e.preventDefault();
+    
+    const deltaX = e.clientX - lastMousePos.x;
+    const deltaY = e.clientY - lastMousePos.y;
+    
+    const newX = position.x + deltaX;
+    const newY = position.y + deltaY;
+    
+    // Calculate boundaries to prevent dragging too far
+    const container = containerRef.current;
+    if (container) {
+      const containerRect = container.getBoundingClientRect();
+      const maxX = (containerRect.width * (zoom - 1)) / 2;
+      const maxY = (containerRect.height * (zoom - 1)) / 2;
       
-      // Calculate boundaries to prevent dragging too far
-      const container = containerRef.current;
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        const maxX = (containerRect.width * (zoom - 1)) / 2;
-        const maxY = (containerRect.height * (zoom - 1)) / 2;
-        
-        setPosition({
-          x: Math.min(Math.max(newX, -maxX), maxX),
-          y: Math.min(Math.max(newY, -maxY), maxY)
-        });
-      }
+      setPosition({
+        x: Math.min(Math.max(newX, -maxX), maxX),
+        y: Math.min(Math.max(newY, -maxY), maxY)
+      });
     }
+    
+    setLastMousePos({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Handle touch events for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setDragStart({
+        x: touch.clientX - position.x,
+        y: touch.clientY - position.y
+      });
+      setLastMousePos({ x: touch.clientX, y: touch.clientY });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    
+    const deltaX = touch.clientX - lastMousePos.x;
+    const deltaY = touch.clientY - lastMousePos.y;
+    
+    const newX = position.x + deltaX;
+    const newY = position.y + deltaY;
+    
+    const container = containerRef.current;
+    if (container) {
+      const containerRect = container.getBoundingClientRect();
+      const maxX = (containerRect.width * (zoom - 1)) / 2;
+      const maxY = (containerRect.height * (zoom - 1)) / 2;
+      
+      setPosition({
+        x: Math.min(Math.max(newX, -maxX), maxX),
+        y: Math.min(Math.max(newY, -maxY), maxY)
+      });
+    }
+    
+    setLastMousePos({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchEnd = () => {
     setIsDragging(false);
   };
 
@@ -110,7 +194,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
         <div className="flex justify-center mb-4 gap-2">
           <Button
             onClick={handleZoomOut}
-            disabled={zoom <= 0.5}
+            disabled={zoom <= 0.25}
             variant="outline"
             size="sm"
             className="bg-slate-700/50 border-purple-500/30 text-white hover:bg-slate-600/50"
@@ -124,7 +208,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
           
           <Button
             onClick={handleZoomIn}
-            disabled={zoom >= 3}
+            disabled={zoom >= 4}
             variant="outline"
             size="sm"
             className="bg-slate-700/50 border-purple-500/30 text-white hover:bg-slate-600/50"
@@ -144,21 +228,28 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
 
         <div 
           ref={containerRef}
-          className="aspect-square max-w-4xl mx-auto bg-slate-700/50 rounded-lg overflow-hidden relative cursor-grab active:cursor-grabbing"
+          className="aspect-square max-w-4xl mx-auto bg-slate-700/50 rounded-lg overflow-hidden relative select-none"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{ 
+            cursor: isDragging ? 'grabbing' : (zoom > 1 ? 'grab' : 'default'),
+            touchAction: 'none'
+          }}
         >
           <img 
             ref={imageRef}
             src={mapImageUrl}
             alt={`Chapter ${chapter} Season ${season} Map`}
-            className="w-full h-full object-cover transition-transform duration-200 select-none"
+            className="w-full h-full object-cover select-none pointer-events-none transition-transform duration-75 ease-out"
             style={{
               transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
-              cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+              transformOrigin: 'center center'
             }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -168,9 +259,9 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
           />
           
           {/* Zoom hint */}
-          {zoom === 1 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-              Use mouse wheel or buttons to zoom
+          {zoom === 1 && !isDragging && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm animate-fade-in">
+              Scroll to zoom • Drag to pan
             </div>
           )}
         </div>
