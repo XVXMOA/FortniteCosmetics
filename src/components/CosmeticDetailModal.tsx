@@ -100,9 +100,10 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
   };
 
   const getLastSeen = () => {
-    if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
-      const lastSeen = cosmeticData.shopHistory[0].date;
-      return formatDate(lastSeen);
+    if (cosmeticData?.lastAppearance?.date) {
+      const lastSeenDate = formatDate(cosmeticData.lastAppearance.date);
+      const daysAgo = cosmeticData.lastAppearance.unseenFor || 0;
+      return `${lastSeenDate} (${daysAgo} days ago)`;
     }
     return "Never in shop";
   };
@@ -218,7 +219,7 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                   </div>
                   
                   <div>
-                    <p className="text-gray-400 text-sm">Last Seen in Shop</p>
+                    <p className="text-gray-400 text-sm">Last Seen</p>
                     <div className="flex items-center gap-2">
                       {loadingHistory ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
