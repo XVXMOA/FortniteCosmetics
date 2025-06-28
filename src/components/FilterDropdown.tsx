@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,32 +29,21 @@ export const FilterDropdown = ({
   availableRarities,
   availableSeries,
 }: FilterDropdownProps) => {
-  const rarityOrder = [
+  const defaultRarities = [
     "Common",
     "Uncommon", 
     "Rare",
     "Epic",
-    "Legendary",
-    "Mythic",
-    "Exotic",
-    "Transcendent"
+    "Legendary"
   ];
 
-  const sortedRarities = availableRarities.sort((a, b) => {
-    const indexA = rarityOrder.indexOf(a);
-    const indexB = rarityOrder.indexOf(b);
-    
-    // If both rarities are in the order array, sort by their position
-    if (indexA !== -1 && indexB !== -1) {
-      return indexA - indexB;
-    }
-    
-    // If only one is in the order array, prioritize it
-    if (indexA !== -1) return -1;
-    if (indexB !== -1) return 1;
-    
-    // If neither is in the order array, sort alphabetically
-    return a.localeCompare(b);
+  // Filter available rarities to only include default ones
+  const filteredRarities = availableRarities.filter(rarity => 
+    defaultRarities.includes(rarity)
+  ).sort((a, b) => {
+    const indexA = defaultRarities.indexOf(a);
+    const indexB = defaultRarities.indexOf(b);
+    return indexA - indexB;
   });
 
   const handleRarityToggle = (rarity: string) => {
@@ -99,11 +87,11 @@ export const FilterDropdown = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-48 bg-slate-800 border-gray-600" style={{ zIndex: 9999 }}>
-          <ScrollArea className="h-60">
+          <ScrollArea className="h-48">
             <div className="p-1">
               <DropdownMenuLabel className="text-white text-sm">Rarities</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-gray-600 my-2" />
-              {sortedRarities.map((rarity) => (
+              {filteredRarities.map((rarity) => (
                 <DropdownMenuCheckboxItem
                   key={rarity}
                   checked={selectedFilters.rarities.includes(rarity)}
@@ -134,7 +122,7 @@ export const FilterDropdown = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48 bg-slate-800 border-gray-600" style={{ zIndex: 9999 }}>
-            <ScrollArea className="h-60">
+            <ScrollArea className="h-48">
               <div className="p-1">
                 <DropdownMenuLabel className="text-white text-sm">Series</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-600 my-2" />
