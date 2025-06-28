@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +14,8 @@ interface SidebarProps {
   onCategoryChange: (categoryId: string) => void;
   onRandomizerView: () => void;
   onSavedCombosView: () => void;
-  currentView: "browse" | "randomizer" | "saved-combos";
+  onCreateComboView: () => void;
+  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo";
 }
 
 export const Sidebar = ({ 
@@ -24,6 +24,7 @@ export const Sidebar = ({
   onCategoryChange, 
   onRandomizerView,
   onSavedCombosView,
+  onCreateComboView,
   currentView 
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,6 +82,27 @@ export const Sidebar = ({
                 </button>
               ))}
               
+              {/* Create Your Own Combo button */}
+              <button
+                onClick={() => {
+                  onCreateComboView();
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 mt-6",
+                  "animate-fade-in",
+                  currentView === "create-combo"
+                    ? "bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg shadow-green-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-green-600/20 hover:to-blue-600/20 border border-green-500/30"
+                )}
+                style={{
+                  animationDelay: `${categories.length * 100}ms`,
+                  animationFillMode: "both"
+                }}
+              >
+                🎨 Create Your Own Combo
+              </button>
+              
               {/* Randomizer button */}
               <button
                 onClick={() => {
@@ -88,14 +110,14 @@ export const Sidebar = ({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 mt-6",
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
                   "animate-fade-in",
                   currentView === "randomizer"
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25"
                     : "text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 border border-blue-500/30"
                 )}
                 style={{
-                  animationDelay: `${categories.length * 100}ms`,
+                  animationDelay: `${(categories.length + 1) * 100}ms`,
                   animationFillMode: "both"
                 }}
               >
@@ -116,7 +138,7 @@ export const Sidebar = ({
                     : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20 border border-pink-500/30"
                 )}
                 style={{
-                  animationDelay: `${(categories.length + 1) * 100}ms`,
+                  animationDelay: `${(categories.length + 2) * 100}ms`,
                   animationFillMode: "both"
                 }}
               >
