@@ -17,14 +17,42 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Season-specific map image URL from Fortnite-API
+  // Season-specific map image URL from Fortnite-API with proper format
   const getMapImageUrl = (chapter: number, season: number) => {
-    // Use the Fortnite API with chapter and season parameters
-    return `https://media.fortniteapi.io/images/map.png?showPOI=false&chapter=${chapter}&season=${season}`;
+    // Try different URL formats for different seasons
+    const timestamp = Date.now(); // Cache busting
+    
+    // For different chapters and seasons, use different API endpoints
+    if (chapter === 1) {
+      switch (season) {
+        case 1:
+          return `https://media.fortniteapi.io/images/C1S1_map.png?t=${timestamp}`;
+        case 2:
+          return `https://media.fortniteapi.io/images/C1S2_map.png?t=${timestamp}`;
+        case 3:
+          return `https://media.fortniteapi.io/images/C1S3_map.png?t=${timestamp}`;
+        case 4:
+          return `https://media.fortniteapi.io/images/C1S4_map.png?t=${timestamp}`;
+        default:
+          return `https://media.fortniteapi.io/images/map.png?showPOI=false&chapter=${chapter}&season=${season}&t=${timestamp}`;
+      }
+    } else if (chapter === 2) {
+      switch (season) {
+        case 1:
+          return `https://media.fortniteapi.io/images/C2S1_map.png?t=${timestamp}`;
+        case 2:
+          return `https://media.fortniteapi.io/images/C2S2_map.png?t=${timestamp}`;
+        default:
+          return `https://media.fortniteapi.io/images/map.png?showPOI=false&chapter=${chapter}&season=${season}&t=${timestamp}`;
+      }
+    }
+    
+    // For newer chapters, use the API with parameters and cache busting
+    return `https://media.fortniteapi.io/images/map.png?showPOI=false&chapter=${chapter}&season=${season}&t=${timestamp}`;
   };
   
   const mapImageUrl = getMapImageUrl(chapter, season);
-  
+
   const getSeasonName = (chapter: number, season: number) => {
     // You can add more specific season names here
     const seasonNames: { [key: string]: string } = {
@@ -277,7 +305,8 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
             }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              // Fallback to generic map if specific season map fails
+              console.log(`Failed to load map for Chapter ${chapter} Season ${season}, trying fallback`);
+              // Fallback to generic current map if specific season map fails
               target.src = "https://media.fortniteapi.io/images/map.png?showPOI=false";
             }}
             draggable={false}
