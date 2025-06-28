@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,14 +91,26 @@ export const Sidebar = ({
                 }}
                 className={cn(
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 mt-6",
-                  "animate-fade-in",
+                  "animate-fade-in relative overflow-hidden",
                   currentView === "create-combo"
-                    ? "bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg shadow-green-500/25"
-                    : "text-white hover:bg-gradient-to-r hover:from-green-600/20 hover:to-blue-600/20 border border-green-500/30"
+                    ? "bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg shadow-green-500/25 border-2 border-transparent bg-gradient-to-r from-green-400 via-green-500 to-blue-500 bg-clip-border"
+                    : "text-white hover:bg-gradient-to-r hover:from-green-600/20 hover:to-blue-600/20 border-2 border-transparent hover:border-gradient-to-r hover:from-green-400 hover:to-blue-400"
                 )}
                 style={{
                   animationDelay: `${categories.length * 100}ms`,
-                  animationFillMode: "both"
+                  animationFillMode: "both",
+                  background: currentView === "create-combo" 
+                    ? "linear-gradient(135deg, #16a34a, #059669, #0284c7, #2563eb)" 
+                    : undefined,
+                  boxShadow: currentView === "create-combo"
+                    ? "0 0 20px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
+                    : undefined,
+                  border: currentView === "create-combo"
+                    ? "2px solid transparent"
+                    : "2px solid rgba(34, 197, 94, 0.3)",
+                  backgroundImage: currentView !== "create-combo"
+                    ? "linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05), rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.1))"
+                    : undefined
                 }}
               >
                 Create Your Own Combo
@@ -111,14 +124,26 @@ export const Sidebar = ({
                 }}
                 className={cn(
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
-                  "animate-fade-in",
+                  "animate-fade-in relative overflow-hidden",
                   currentView === "randomizer"
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25"
-                    : "text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 border border-blue-500/30"
+                    ? "text-white shadow-lg shadow-blue-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20"
                 )}
                 style={{
                   animationDelay: `${(categories.length + 1) * 100}ms`,
-                  animationFillMode: "both"
+                  animationFillMode: "both",
+                  background: currentView === "randomizer" 
+                    ? "linear-gradient(135deg, #1e40af, #3b82f6, #8b5cf6, #a855f7)" 
+                    : undefined,
+                  boxShadow: currentView === "randomizer"
+                    ? "0 0 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
+                    : undefined,
+                  border: currentView === "randomizer"
+                    ? "2px solid transparent"
+                    : "2px solid rgba(59, 130, 246, 0.3)",
+                  backgroundImage: currentView !== "randomizer"
+                    ? "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.1))"
+                    : undefined
                 }}
               >
                 Randomizer
@@ -132,14 +157,26 @@ export const Sidebar = ({
                 }}
                 className={cn(
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
-                  "animate-fade-in",
+                  "animate-fade-in relative overflow-hidden",
                   currentView === "saved-combos"
-                    ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-pink-500/25"
-                    : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20 border border-pink-500/30"
+                    ? "text-white shadow-lg shadow-pink-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20"
                 )}
                 style={{
                   animationDelay: `${(categories.length + 2) * 100}ms`,
-                  animationFillMode: "both"
+                  animationFillMode: "both",
+                  background: currentView === "saved-combos" 
+                    ? "linear-gradient(135deg, #be185d, #ec4899, #8b5cf6, #a855f7)" 
+                    : undefined,
+                  boxShadow: currentView === "saved-combos"
+                    ? "0 0 20px rgba(236, 72, 153, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
+                    : undefined,
+                  border: currentView === "saved-combos"
+                    ? "2px solid transparent"
+                    : "2px solid rgba(236, 72, 153, 0.3)",
+                  backgroundImage: currentView !== "saved-combos"
+                    ? "linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(236, 72, 153, 0.05), rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.1))"
+                    : undefined
                 }}
               >
                 Saved Combos

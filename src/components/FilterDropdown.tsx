@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface FilterOptions {
   rarities: string[];
@@ -67,35 +68,39 @@ export const FilterDropdown = ({
           <ChevronDown className="w-4 h-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-slate-800 border-gray-600">
-        <DropdownMenuLabel className="text-white">Rarities</DropdownMenuLabel>
-        {availableRarities.map((rarity) => (
-          <DropdownMenuCheckboxItem
-            key={rarity}
-            checked={selectedFilters.rarities.includes(rarity)}
-            onCheckedChange={() => handleRarityToggle(rarity)}
-            className="text-gray-300 hover:bg-slate-700"
-          >
-            {rarity}
-          </DropdownMenuCheckboxItem>
-        ))}
-        
-        {availableSeries.length > 0 && (
-          <>
-            <DropdownMenuSeparator className="bg-gray-600" />
-            <DropdownMenuLabel className="text-white">Series</DropdownMenuLabel>
-            {availableSeries.map((series) => (
+      <DropdownMenuContent className="w-48 bg-slate-800 border-gray-600 max-h-80">
+        <ScrollArea className="h-full">
+          <div className="p-1">
+            <DropdownMenuLabel className="text-white text-sm">Rarities</DropdownMenuLabel>
+            {availableRarities.map((rarity) => (
               <DropdownMenuCheckboxItem
-                key={series}
-                checked={selectedFilters.series.includes(series)}
-                onCheckedChange={() => handleSeriesToggle(series)}
-                className="text-gray-300 hover:bg-slate-700"
+                key={rarity}
+                checked={selectedFilters.rarities.includes(rarity)}
+                onCheckedChange={() => handleRarityToggle(rarity)}
+                className="text-gray-300 hover:bg-slate-700 text-sm py-1.5"
               >
-                {series}
+                {rarity}
               </DropdownMenuCheckboxItem>
             ))}
-          </>
-        )}
+            
+            {availableSeries.length > 0 && (
+              <>
+                <DropdownMenuSeparator className="bg-gray-600 my-2" />
+                <DropdownMenuLabel className="text-white text-sm">Series</DropdownMenuLabel>
+                {availableSeries.map((series) => (
+                  <DropdownMenuCheckboxItem
+                    key={series}
+                    checked={selectedFilters.series.includes(series)}
+                    onCheckedChange={() => handleSeriesToggle(series)}
+                    className="text-gray-300 hover:bg-slate-700 text-sm py-1.5"
+                  >
+                    {series}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </>
+            )}
+          </div>
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );
