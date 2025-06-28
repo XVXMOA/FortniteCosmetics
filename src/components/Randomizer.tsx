@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
+import { CosmeticDetailModal } from "./CosmeticDetailModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shuffle, Sparkles, Heart, Save } from "lucide-react";
@@ -35,6 +35,8 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
+  const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
 
   const getRandomItem = (type: string): CosmeticItem | undefined => {
@@ -120,6 +122,16 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
     return series.sort();
   };
 
+  const handleCosmeticClick = (cosmetic: CosmeticItem) => {
+    setSelectedCosmetic(cosmetic);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCosmetic(null);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -194,7 +206,11 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
                   {label}
                 </h4>
                 {item ? (
-                  <CosmeticCard cosmetic={item} index={index} />
+                  <CosmeticCard 
+                    cosmetic={item} 
+                    index={index} 
+                    onClick={handleCosmeticClick}
+                  />
                 ) : (
                   <div className="aspect-square bg-slate-800/50 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center text-gray-400">
                     <div className="text-4xl mb-2">❓</div>
@@ -281,6 +297,12 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
           </p>
         </div>
       )}
+
+      <CosmeticDetailModal
+        cosmetic={selectedCosmetic}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

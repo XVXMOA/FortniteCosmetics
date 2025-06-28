@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Heart } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { SortDropdown, SortOption } from "./SortDropdown";
+import { CosmeticDetailModal } from "./CosmeticDetailModal";
 
 interface SavedCombo {
   id: string;
@@ -26,6 +26,8 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
   const [filteredCombos, setFilteredCombos] = useState<SavedCombo[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSort, setCurrentSort] = useState<SortOption>("most-recent");
+  const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadSavedCombos();
@@ -83,6 +85,16 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
     { key: "pickaxe", item: combo.pickaxe, label: "Pickaxe" },
     { key: "glider", item: combo.glider, label: "Glider" },
   ];
+
+  const handleCosmeticClick = (cosmetic: CosmeticItem) => {
+    setSelectedCosmetic(cosmetic);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCosmetic(null);
+  };
 
   return (
     <div className="space-y-8">
@@ -152,7 +164,11 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
                       {label}
                     </h4>
                     {item ? (
-                      <CosmeticCard cosmetic={item} index={index} />
+                      <CosmeticCard 
+                        cosmetic={item} 
+                        index={index} 
+                        onClick={handleCosmeticClick}
+                      />
                     ) : (
                       <div className="aspect-square bg-slate-800/50 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center text-gray-400">
                         <div className="text-4xl mb-2">❓</div>
@@ -188,6 +204,12 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
           </Button>
         </div>
       )}
+
+      <CosmeticDetailModal
+        cosmetic={selectedCosmetic}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

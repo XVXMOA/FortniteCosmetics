@@ -1,6 +1,8 @@
 
+import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
+import { CosmeticDetailModal } from "./CosmeticDetailModal";
 import { SortDropdown, SortOption } from "./SortDropdown";
 import { SearchBar } from "./SearchBar";
 import { FilterDropdown, FilterOptions } from "./FilterDropdown";
@@ -30,6 +32,19 @@ export const CosmeticGrid = ({
   availableRarities,
   availableSeries
 }: CosmeticGridProps) => {
+  const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCosmeticClick = (cosmetic: CosmeticItem) => {
+    setSelectedCosmetic(cosmetic);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCosmetic(null);
+  };
+
   if (cosmetics.length === 0) {
     return (
       <div className="text-center py-12">
@@ -79,9 +94,16 @@ export const CosmeticGrid = ({
             key={cosmetic.id} 
             cosmetic={cosmetic} 
             index={index}
+            onClick={handleCosmeticClick}
           />
         ))}
       </div>
+
+      <CosmeticDetailModal
+        cosmetic={selectedCosmetic}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

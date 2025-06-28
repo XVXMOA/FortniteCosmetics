@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 interface CosmeticCardProps {
   cosmetic: CosmeticItem;
   index: number;
+  onClick?: (cosmetic: CosmeticItem) => void;
 }
 
 const rarityColors = {
@@ -59,7 +60,7 @@ const getSeriesGradient = (series: { value: string; colors?: string[] }) => {
   return rarityColors.common;
 };
 
-export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
+export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) => {
   // Check if item has series
   const hasSeries = cosmetic.series?.value;
   
@@ -73,6 +74,12 @@ export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
   
   const imageUrl = cosmetic.images?.icon || cosmetic.images?.smallIcon || cosmetic.images?.featured;
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(cosmetic);
+    }
+  };
+
   return (
     <div 
       className={cn(
@@ -85,6 +92,7 @@ export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
         animationDelay: `${index * 50}ms`,
         animationFillMode: "both"
       }}
+      onClick={handleClick}
     >
       {/* Image */}
       <div className="aspect-square relative overflow-hidden bg-slate-900/50">
