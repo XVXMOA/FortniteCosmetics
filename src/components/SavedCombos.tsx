@@ -4,6 +4,8 @@ import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
 import { Button } from "@/components/ui/button";
 import { Trash2, Heart } from "lucide-react";
+import { SearchBar } from "./SearchBar";
+import { SortDropdown, SortOption } from "./SortDropdown";
 
 interface SavedCombo {
   id: string;
@@ -21,16 +23,52 @@ interface SavedCombosProps {
 
 export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
   const [savedCombos, setSavedCombos] = useState<SavedCombo[]>([]);
+  const [filteredCombos, setFilteredCombos] = useState<SavedCombo[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentSort, setCurrentSort] = useState<SortOption>("most-recent");
 
   useEffect(() => {
     loadSavedCombos();
   }, []);
+
+  useEffect(() => {
+    filterAndSortCombos();
+  }, [savedCombos, searchQuery, currentSort]);
 
   const loadSavedCombos = () => {
     const saved = localStorage.getItem('fortnite-saved-combos');
     if (saved) {
       setSavedCombos(JSON.parse(saved));
     }
+  };
+
+  const filterAndSortCombos = () => {
+    let filtered = [...savedCombos];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(combo =>
+        combo.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (currentSort) {
+        case "alphabetical-a-z":
+          return a.name.localeCompare(b.name);
+        case "alphabetical-z-a":
+          return b.name.localeCompare(a.name);
+        case "most-recent":
+          return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
+        case "last-seen":
+          return new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredCombos(filtered);
   };
 
   const deleteCombo = (id: string) => {
@@ -62,21 +100,35 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
         </p>
       </div>
 
-      {/* Back Button */}
-      <div className="text-center">
-        <Button
-          onClick={onBackToRandomizer}
-          variant="outline"
-          className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
-        >
-          Back to Randomizer
-        </Button>
-      </div>
+      {/* Search and Controls */}
+      {savedCombos.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search saved combos..."
+          />
+          
+          <div className="flex gap-3">
+            <SortDropdown 
+              currentSort={currentSort}
+              onSortChange={setCurrentSort}
+            />
+            <Button
+              onClick={onBackToRandomizer}
+              variant="outline"
+              className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
+            >
+              Back to Randomizer
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Saved Combos */}
-      {savedCombos.length > 0 ? (
+      {filteredCombos.length > 0 ? (
         <div className="space-y-8">
-          {savedCombos.map((combo) => (
+          {filteredCombos.map((combo) => (
             <div key={combo.id} className="bg-slate-800/50 rounded-xl p-6 border border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <div>
@@ -112,6 +164,14 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
               </div>
             </div>
           ))}
+        </div>
+      ) : savedCombos.length > 0 ? (
+        <div className="text-center py-12">
+          <div className="text-8xl mb-6">🔍</div>
+          <h3 className="text-2xl font-semibold text-white mb-4">No Results Found</h3>
+          <p className="text-gray-400 max-w-md mx-auto mb-6">
+            No saved combos match your search. Try adjusting your search terms.
+          </p>
         </div>
       ) : (
         <div className="text-center py-12">

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shuffle, Sparkles, Heart, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SearchBar } from "./SearchBar";
+import { SortDropdown, SortOption } from "./SortDropdown";
+import { FilterDropdown, FilterOptions } from "./FilterDropdown";
 
 interface RandomizerProps {
   cosmetics: CosmeticItem[];
@@ -29,6 +32,9 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [comboName, setComboName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
+  const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
   const { toast } = useToast();
 
   const getRandomItem = (type: string): CosmeticItem | undefined => {
@@ -101,6 +107,19 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
     { key: "glider", item: randomCombo.glider, label: "Glider" },
   ];
 
+  const getAvailableRarities = () => {
+    const rarities = [...new Set(cosmetics.map(item => item.rarity.displayValue))];
+    return rarities.sort();
+  };
+
+  const getAvailableSeries = () => {
+    const series = [...new Set(cosmetics
+      .filter(item => item.series)
+      .map(item => item.series!.value)
+    )];
+    return series.sort();
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -115,6 +134,28 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
         <p className="text-xl text-gray-300 max-w-2xl mx-auto">
           Generate the perfect random loadout with one click! Get a complete combo with outfit, back bling, pickaxe, and glider.
         </p>
+      </div>
+
+      {/* Search and Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between max-w-4xl mx-auto">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search cosmetics..."
+        />
+        
+        <div className="flex gap-3">
+          <FilterDropdown
+            selectedFilters={filters}
+            onFiltersChange={setFilters}
+            availableRarities={getAvailableRarities()}
+            availableSeries={getAvailableSeries()}
+          />
+          <SortDropdown 
+            currentSort={currentSort}
+            onSortChange={setCurrentSort}
+          />
+        </div>
       </div>
 
       {/* Generate Button */}

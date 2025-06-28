@@ -42,6 +42,11 @@ const Index = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo">("browse");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<{ rarities: string[]; series: string[] }>({
+    rarities: [],
+    series: []
+  });
   const { toast } = useToast();
 
   const categories = [
@@ -71,7 +76,7 @@ const Index = () => {
     if (currentView === "browse") {
       filterCosmetics();
     }
-  }, [currentCategory, cosmetics, currentView]);
+  }, [currentCategory, cosmetics, currentView, searchQuery, filters]);
 
   useEffect(() => {
     if (currentView === "browse") {
@@ -112,9 +117,31 @@ const Index = () => {
     const categoryConfig = categories.find(cat => cat.id === currentCategory);
     if (!categoryConfig) return;
 
-    const filtered = cosmetics.filter(item => 
+    let filtered = cosmetics.filter(item => 
       item.type.value.toLowerCase() === categoryConfig.apiType.toLowerCase()
     );
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply rarity filter
+    if (filters.rarities.length > 0) {
+      filtered = filtered.filter(item =>
+        filters.rarities.includes(item.rarity.displayValue)
+      );
+    }
+
+    // Apply series filter
+    if (filters.series.length > 0) {
+      filtered = filtered.filter(item =>
+        item.series && filters.series.includes(item.series.value)
+      );
+    }
     
     console.log(`Filtered ${categoryConfig.name}:`, filtered.length, "items");
     setFilteredCosmetics(filtered);
@@ -164,6 +191,8 @@ const Index = () => {
   const handleCategoryChange = (categoryId: string) => {
     setCurrentCategory(categoryId);
     setCurrentView("browse");
+    setSearchQuery("");
+    setFilters({ rarities: [], series: [] });
   };
 
   const handleRandomizerView = () => {
@@ -180,6 +209,33 @@ const Index = () => {
 
   const handleSortChange = (sort: SortOption) => {
     setCurrentSort(sort);
+  };
+
+  const getAvailableRarities = () => {
+    const categoryConfig = categories.find(cat => cat.id === currentCategory);
+    if (!categoryConfig) return [];
+    
+    const categoryItems = cosmetics.filter(item => 
+      item.type.value.toLowerCase() === categoryConfig.apiType.toLowerCase()
+    );
+    
+    const rarities = [...new Set(categoryItems.map(item => item.rarity.displayValue))];
+    return rarities.sort();
+  };
+
+  const getAvailableSeries = () => {
+    const categoryConfig = categories.find(cat => cat.id === currentCategory);
+    if (!categoryConfig) return [];
+    
+    const categoryItems = cosmetics.filter(item => 
+      item.type.value.toLowerCase() === categoryConfig.apiType.toLowerCase()
+    );
+    
+    const series = [...new Set(categoryItems
+      .filter(item => item.series)
+      .map(item => item.series!.value)
+    )];
+    return series.sort();
   };
 
   return (
@@ -213,6 +269,12 @@ const Index = () => {
               category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
               currentSort={currentSort}
               onSortChange={handleSortChange}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              filters={filters}
+              onFiltersChange={setFilters}
+              availableRarities={getAvailableRarities()}
+              availableSeries={getAvailableSeries()}
             />
           ) : currentView === "randomizer" ? (
             <Randomizer cosmetics={cosmetics} />

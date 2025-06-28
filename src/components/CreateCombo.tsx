@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,9 @@ import { ArrowLeft, ArrowRight, Check, RotateCcw } from "lucide-react";
 import { CosmeticCard } from "./CosmeticCard";
 import { ComboViewer3D } from "./ComboViewer3D";
 import { useToast } from "@/hooks/use-toast";
+import { SearchBar } from "./SearchBar";
+import { SortDropdown, SortOption } from "./SortDropdown";
+import { FilterDropdown, FilterOptions } from "./FilterDropdown";
 
 interface CreateComboProps {
   cosmetics: CosmeticItem[];
@@ -27,6 +29,9 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const [selectedCombo, setSelectedCombo] = useState<CustomCombo>({});
   const [includeEmotes, setIncludeEmotes] = useState(false);
   const [includeBackpack, setIncludeBackpack] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
+  const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
   const { toast } = useToast();
 
   const steps: { key: ComboStep; label: string; required: boolean }[] = [
@@ -41,15 +46,62 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const getItemsForStep = (step: ComboStep): CosmeticItem[] => {
     const typeMap = {
       outfit: "outfit",
-      backpack: "backpack",
+      backpack: "backpack", 
       pickaxe: "pickaxe",
       glider: "glider",
       emote: "emote"
     };
     
-    return cosmetics.filter(item => 
+    let items = cosmetics.filter(item => 
       item.type.value.toLowerCase() === typeMap[step]?.toLowerCase()
     );
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      items = items.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply rarity filter
+    if (filters.rarities.length > 0) {
+      items = items.filter(item =>
+        filters.rarities.includes(item.rarity.displayValue)
+      );
+    }
+
+    // Apply series filter
+    if (filters.series.length > 0) {
+      items = items.filter(item =>
+        item.series && filters.series.includes(item.series.value)
+      );
+    }
+
+    // Apply sorting
+    return items.sort((a, b) => {
+      const rarityOrder = {
+        "common": 1, "uncommon": 2, "rare": 3, "epic": 4, 
+        "legendary": 5, "mythic": 6, "exotic": 7, "transcendent": 8
+      };
+
+      switch (currentSort) {
+        case "rarity-low-high":
+          const rarityA = rarityOrder[a.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          const rarityB = rarityOrder[b.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          return rarityA - rarityB;
+        case "rarity-high-low":
+          const rarityA2 = rarityOrder[a.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          const rarityB2 = rarityOrder[b.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          return rarityB2 - rarityA2;
+        case "alphabetical-a-z":
+          return a.name.localeCompare(b.name);
+        case "alphabetical-z-a":
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
   };
 
   const handleItemSelect = (item: CosmeticItem) => {
@@ -144,6 +196,21 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
       title: "Combo Saved!",
       description: `Your custom combo has been saved.`,
     });
+  };
+
+  const getAvailableRarities = () => {
+    const items = getItemsForStep(currentStep);
+    const rarities = [...new Set(items.map(item => item.rarity.displayValue))];
+    return rarities.sort();
+  };
+
+  const getAvailableSeries = () => {
+    const items = getItemsForStep(currentStep);
+    const series = [...new Set(items
+      .filter(item => item.series)
+      .map(item => item.series!.value)
+    )];
+    return series.sort();
   };
 
   if (currentStep === "preview") {
@@ -266,6 +333,28 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         </div>
       )}
 
+      {/* Search and Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={`Search ${currentStepData?.label.toLowerCase()}...`}
+        />
+        
+        <div className="flex gap-3">
+          <FilterDropdown
+            selectedFilters={filters}
+            onFiltersChange={setFilters}
+            availableRarities={getAvailableRarities()}
+            availableSeries={getAvailableSeries()}
+          />
+          <SortDropdown 
+            currentSort={currentSort}
+            onSortChange={setCurrentSort}
+          />
+        </div>
+      </div>
+
       {/* Current Selection */}
       {selectedCombo[currentStep] && (
         <div className="text-center">
@@ -292,6 +381,14 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
           </div>
         ))}
       </div>
+
+      {availableItems.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-2xl font-semibold text-white mb-2">No Items Found</h3>
+          <p className="text-gray-400">Try adjusting your search or filters.</p>
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex justify-between items-center max-w-4xl mx-auto">

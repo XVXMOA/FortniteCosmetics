@@ -100,7 +100,7 @@ export const Sidebar = ({
                   animationFillMode: "both"
                 }}
               >
-                🎨 Create Your Own Combo
+                Create Your Own Combo
               </button>
               
               {/* Randomizer button */}
@@ -121,7 +121,7 @@ export const Sidebar = ({
                   animationFillMode: "both"
                 }}
               >
-                🎲 Randomizer
+                Randomizer
               </button>
 
               {/* Saved Combos button */}
@@ -142,7 +142,7 @@ export const Sidebar = ({
                   animationFillMode: "both"
                 }}
               >
-                💖 Saved Combos
+                Saved Combos
               </button>
             </div>
           </nav>

@@ -2,21 +2,40 @@
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
 import { SortDropdown, SortOption } from "./SortDropdown";
+import { SearchBar } from "./SearchBar";
+import { FilterDropdown, FilterOptions } from "./FilterDropdown";
 
 interface CosmeticGridProps {
   cosmetics: CosmeticItem[];
   category: string;
   currentSort: SortOption;
   onSortChange: (sort: SortOption) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  filters: FilterOptions;
+  onFiltersChange: (filters: FilterOptions) => void;
+  availableRarities: string[];
+  availableSeries: string[];
 }
 
-export const CosmeticGrid = ({ cosmetics, category, currentSort, onSortChange }: CosmeticGridProps) => {
+export const CosmeticGrid = ({ 
+  cosmetics, 
+  category, 
+  currentSort, 
+  onSortChange,
+  searchQuery,
+  onSearchChange,
+  filters,
+  onFiltersChange,
+  availableRarities,
+  availableSeries
+}: CosmeticGridProps) => {
   if (cosmetics.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">🎮</div>
         <h3 className="text-2xl font-semibold text-white mb-2">No {category} Found</h3>
-        <p className="text-gray-400">Try refreshing the page or check back later.</p>
+        <p className="text-gray-400">Try adjusting your search or filters.</p>
       </div>
     );
   }
@@ -30,11 +49,28 @@ export const CosmeticGrid = ({ cosmetics, category, currentSort, onSortChange }:
             ({cosmetics.length} items)
           </span>
         </h2>
-        
-        <SortDropdown 
-          currentSort={currentSort}
-          onSortChange={onSortChange}
+      </div>
+
+      {/* Search and Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <SearchBar
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder={`Search ${category.toLowerCase()}...`}
         />
+        
+        <div className="flex gap-3">
+          <FilterDropdown
+            selectedFilters={filters}
+            onFiltersChange={onFiltersChange}
+            availableRarities={availableRarities}
+            availableSeries={availableSeries}
+          />
+          <SortDropdown 
+            currentSort={currentSort}
+            onSortChange={onSortChange}
+          />
+        </div>
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
