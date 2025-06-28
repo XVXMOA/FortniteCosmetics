@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight, Map as MapIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Category {
@@ -16,7 +16,9 @@ interface SidebarProps {
   onRandomizerView: () => void;
   onSavedCombosView: () => void;
   onCreateComboView: () => void;
-  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo";
+  onMapView: (chapter: number, season: number) => void;
+  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo" | "map";
+  currentMapSelection?: { chapter: number; season: number };
 }
 
 export const Sidebar = ({ 
@@ -26,13 +28,35 @@ export const Sidebar = ({
   onRandomizerView,
   onSavedCombosView,
   onCreateComboView,
-  currentView 
+  onMapView,
+  currentView,
+  currentMapSelection
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [cosmeticsExpanded, setCosmeticsExpanded] = useState(true);
+  const [mapExpanded, setMapExpanded] = useState(false);
+  const [expandedChapters, setExpandedChapters] = useState<number[]>([]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  const toggleChapter = (chapter: number) => {
+    setExpandedChapters(prev => 
+      prev.includes(chapter) 
+        ? prev.filter(c => c !== chapter)
+        : [...prev, chapter]
+    );
+  };
+
+  // Define chapters and their seasons
+  const chapters = [
+    { number: 1, seasons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+    { number: 2, seasons: [1, 2, 3, 4, 5, 6, 7, 8] },
+    { number: 3, seasons: [1, 2, 3, 4] },
+    { number: 4, seasons: [1, 2, 3, 4] },
+    { number: 5, seasons: [1, 2, 3, 4] }
+  ];
 
   return (
     <>
@@ -58,30 +82,104 @@ export const Sidebar = ({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4">
+          <nav className="flex-1 p-4 overflow-y-auto">
             <div className="space-y-2">
-              {categories.map((category, index) => (
+              {/* Cosmetics Section */}
+              <div>
                 <button
-                  key={category.id}
-                  onClick={() => {
-                    onCategoryChange(category.id);
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
-                    "animate-fade-in",
-                    currentCategory === category.id && currentView === "browse"
-                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25"
-                      : "text-white hover:bg-slate-700/50 hover:text-purple-300"
-                  )}
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animationFillMode: "both"
-                  }}
+                  onClick={() => setCosmeticsExpanded(!cosmeticsExpanded)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-white hover:bg-slate-700/50 rounded-lg transition-colors"
                 >
-                  {category.name}
+                  <span className="font-medium">Cosmetics</span>
+                  {cosmeticsExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </button>
-              ))}
+                
+                {cosmeticsExpanded && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {categories.map((category, index) => (
+                      <button
+                        key={category.id}
+                        onClick={() => {
+                          onCategoryChange(category.id);
+                          setIsOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 rounded-lg transition-all duration-200 text-sm",
+                          "animate-fade-in",
+                          currentCategory === category.id && currentView === "browse"
+                            ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25"
+                            : "text-gray-300 hover:bg-slate-700/50 hover:text-purple-300"
+                        )}
+                        style={{
+                          animationDelay: `${index * 50}ms`,
+                          animationFillMode: "both"
+                        }}
+                      >
+                        {category.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Map Section */}
+              <div>
+                <button
+                  onClick={() => setMapExpanded(!mapExpanded)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapIcon size={16} />
+                    <span className="font-medium">Map</span>
+                  </div>
+                  {mapExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </button>
+                
+                {mapExpanded && (
+                  <div className="ml-4 mt-2 space-y-1">
+                    {chapters.map((chapter) => (
+                      <div key={chapter.number}>
+                        <button
+                          onClick={() => toggleChapter(chapter.number)}
+                          className="w-full flex items-center justify-between px-4 py-2 text-gray-300 hover:bg-slate-700/50 rounded-lg transition-colors text-sm"
+                        >
+                          <span>Chapter {chapter.number}</span>
+                          {expandedChapters.includes(chapter.number) ? 
+                            <ChevronDown size={14} /> : <ChevronRight size={14} />
+                          }
+                        </button>
+                        
+                        {expandedChapters.includes(chapter.number) && (
+                          <div className="ml-4 mt-1 space-y-1">
+                            {chapter.seasons.map((season) => (
+                              <button
+                                key={`${chapter.number}-${season}`}
+                                onClick={() => {
+                                  onMapView(chapter.number, season);
+                                  setIsOpen(false);
+                                }}
+                                className={cn(
+                                  "w-full text-left px-4 py-2 rounded-lg transition-colors text-xs",
+                                  currentView === "map" && 
+                                  currentMapSelection?.chapter === chapter.number && 
+                                  currentMapSelection?.season === season
+                                    ? "bg-green-600 text-white shadow-lg"
+                                    : "text-gray-400 hover:bg-slate-700/50 hover:text-green-300"
+                                )}
+                              >
+                                Season {season}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-purple-500/20 my-4"></div>
               
               {/* Create Your Own Combo button */}
               <button
@@ -90,28 +188,12 @@ export const Sidebar = ({
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 mt-6",
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
                   "animate-fade-in relative overflow-hidden",
                   currentView === "create-combo"
-                    ? "bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg shadow-green-500/25 border-2 border-transparent bg-gradient-to-r from-green-400 via-green-500 to-blue-500 bg-clip-border"
-                    : "text-white hover:bg-gradient-to-r hover:from-green-600/20 hover:to-blue-600/20 border-2 border-transparent hover:border-gradient-to-r hover:from-green-400 hover:to-blue-400"
+                    ? "bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg shadow-green-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-green-600/20 hover:to-blue-600/20 border-2 border-green-400/30"
                 )}
-                style={{
-                  animationDelay: `${categories.length * 100}ms`,
-                  animationFillMode: "both",
-                  background: currentView === "create-combo" 
-                    ? "linear-gradient(135deg, #16a34a, #059669, #0284c7, #2563eb)" 
-                    : undefined,
-                  boxShadow: currentView === "create-combo"
-                    ? "0 0 20px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
-                    : undefined,
-                  border: currentView === "create-combo"
-                    ? "2px solid transparent"
-                    : "2px solid rgba(34, 197, 94, 0.3)",
-                  backgroundImage: currentView !== "create-combo"
-                    ? "linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05), rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.1))"
-                    : undefined
-                }}
               >
                 Create Your Own Combo
               </button>
@@ -126,25 +208,9 @@ export const Sidebar = ({
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
                   "animate-fade-in relative overflow-hidden",
                   currentView === "randomizer"
-                    ? "text-white shadow-lg shadow-blue-500/25"
-                    : "text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-blue-600/20 hover:to-purple-600/20 border-2 border-blue-400/30"
                 )}
-                style={{
-                  animationDelay: `${(categories.length + 1) * 100}ms`,
-                  animationFillMode: "both",
-                  background: currentView === "randomizer" 
-                    ? "linear-gradient(135deg, #1e40af, #3b82f6, #8b5cf6, #a855f7)" 
-                    : undefined,
-                  boxShadow: currentView === "randomizer"
-                    ? "0 0 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
-                    : undefined,
-                  border: currentView === "randomizer"
-                    ? "2px solid transparent"
-                    : "2px solid rgba(59, 130, 246, 0.3)",
-                  backgroundImage: currentView !== "randomizer"
-                    ? "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.1))"
-                    : undefined
-                }}
               >
                 Randomizer
               </button>
@@ -159,25 +225,9 @@ export const Sidebar = ({
                   "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
                   "animate-fade-in relative overflow-hidden",
                   currentView === "saved-combos"
-                    ? "text-white shadow-lg shadow-pink-500/25"
-                    : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20"
+                    ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-pink-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20 border-2 border-pink-400/30"
                 )}
-                style={{
-                  animationDelay: `${(categories.length + 2) * 100}ms`,
-                  animationFillMode: "both",
-                  background: currentView === "saved-combos" 
-                    ? "linear-gradient(135deg, #be185d, #ec4899, #8b5cf6, #a855f7)" 
-                    : undefined,
-                  boxShadow: currentView === "saved-combos"
-                    ? "0 0 20px rgba(236, 72, 153, 0.4), inset 0 1px 0 rgba(255,255,255,0.2)"
-                    : undefined,
-                  border: currentView === "saved-combos"
-                    ? "2px solid transparent"
-                    : "2px solid rgba(236, 72, 153, 0.3)",
-                  backgroundImage: currentView !== "saved-combos"
-                    ? "linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(236, 72, 153, 0.05), rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.1))"
-                    : undefined
-                }}
               >
                 Saved Combos
               </button>

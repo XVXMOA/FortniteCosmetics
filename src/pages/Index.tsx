@@ -4,6 +4,7 @@ import { CosmeticGrid } from "@/components/CosmeticGrid";
 import { Randomizer } from "@/components/Randomizer";
 import { SavedCombos } from "@/components/SavedCombos";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { MapViewer } from "@/components/MapViewer";
 import { useToast } from "@/hooks/use-toast";
 import { SortOption } from "@/components/SortDropdown";
 import { CreateCombo } from "@/components/CreateCombo";
@@ -42,7 +43,8 @@ const Index = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo">("browse");
+  const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo" | "map">("browse");
+  const [currentMapSelection, setCurrentMapSelection] = useState<{ chapter: number; season: number }>({ chapter: 1, season: 1 });
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ rarities: string[]; series: string[] }>({
     rarities: [],
@@ -243,6 +245,15 @@ const Index = () => {
     }, 200);
   };
 
+  const handleMapView = (chapter: number, season: number) => {
+    setIsUpdating(true);
+    setTimeout(() => {
+      setCurrentView("map");
+      setCurrentMapSelection({ chapter, season });
+      setIsUpdating(false);
+    }, 200);
+  };
+
   const handleSortChange = (sort: SortOption) => {
     setCurrentSort(sort);
     // Loading state will be handled by useEffect
@@ -303,7 +314,9 @@ const Index = () => {
         onRandomizerView={handleRandomizerView}
         onSavedCombosView={handleSavedCombosView}
         onCreateComboView={handleCreateComboView}
+        onMapView={handleMapView}
         currentView={currentView}
+        currentMapSelection={currentMapSelection}
       />
       
       <main className="transition-all duration-300 ease-in-out lg:ml-64">
@@ -336,6 +349,11 @@ const Index = () => {
             <CreateCombo 
               cosmetics={cosmetics} 
               onBack={() => setCurrentView("browse")} 
+            />
+          ) : currentView === "map" ? (
+            <MapViewer 
+              chapter={currentMapSelection.chapter} 
+              season={currentMapSelection.season} 
             />
           ) : (
             <SavedCombos onBackToRandomizer={() => setCurrentView("randomizer")} />
