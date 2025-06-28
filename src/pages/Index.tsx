@@ -73,13 +73,13 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (currentView === "browse") {
+    if (currentView === "browse" && cosmetics.length > 0) {
       filterCosmetics();
     }
   }, [currentCategory, cosmetics, currentView, searchQuery, filters]);
 
   useEffect(() => {
-    if (currentView === "browse") {
+    if (currentView === "browse" && filteredCosmetics.length > 0) {
       sortCosmetics();
     }
   }, [currentSort, filteredCosmetics.length]);
@@ -97,7 +97,16 @@ const Index = () => {
       console.log("Fetched cosmetics:", data);
       
       if (data.status === 200 && data.data) {
-        setCosmetics(data.data);
+        // Filter out test pickaxes and other test items
+        const filteredData = data.data.filter((item: CosmeticItem) => {
+          const isTestItem = item.name.toLowerCase().includes('test') || 
+                           item.description.toLowerCase().includes('test') ||
+                           item.id.toLowerCase().includes('test');
+          return !isTestItem;
+        });
+        
+        setCosmetics(filteredData);
+        console.log("Filtered cosmetics (removed test items):", filteredData.length);
       } else {
         throw new Error("Invalid API response");
       }
@@ -109,7 +118,10 @@ const Index = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      // Add a small delay to ensure everything is properly loaded
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     }
   };
 
@@ -238,6 +250,15 @@ const Index = () => {
     return series.sort();
   };
 
+  // Show loading screen until cosmetics are fully loaded
+  if (loading || cosmetics.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Sidebar 
@@ -261,9 +282,7 @@ const Index = () => {
             </p>
           </header>
 
-          {loading ? (
-            <LoadingSpinner />
-          ) : currentView === "browse" ? (
+          {currentView === "browse" ? (
             <CosmeticGrid 
               cosmetics={filteredCosmetics}
               category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
