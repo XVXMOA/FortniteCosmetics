@@ -36,29 +36,37 @@ const seriesColors = {
 };
 
 export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetailModalProps) => {
-  const [shopHistory, setShopHistory] = useState<any>(null);
+  const [cosmeticData, setCosmeticData] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
   useEffect(() => {
     if (cosmetic && isOpen) {
-      fetchShopHistory();
+      fetchCosmeticData();
     }
   }, [cosmetic, isOpen]);
 
-  const fetchShopHistory = async () => {
+  const fetchCosmeticData = async () => {
     if (!cosmetic) return;
     
     setLoadingHistory(true);
     try {
-      const response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/search?name=${encodeURIComponent(cosmetic.name)}`);
+      // Try to get detailed cosmetic data by ID first
+      let response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/${cosmetic.id}`);
+      
+      if (!response.ok || response.status !== 200) {
+        // Fallback to search by name if ID doesn't work
+        response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/search?name=${encodeURIComponent(cosmetic.name)}`);
+      }
+      
       if (response.ok) {
         const data = await response.json();
         if (data.status === 200 && data.data) {
-          setShopHistory(data.data);
+          setCosmeticData(data.data);
+          console.log("Fetched detailed cosmetic data:", data.data);
         }
       }
     } catch (error) {
-      console.error("Error fetching shop history:", error);
+      console.error("Error fetching cosmetic data:", error);
     } finally {
       setLoadingHistory(false);
     }
@@ -92,11 +100,11 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
   };
 
   const getLastSeen = () => {
-    if (shopHistory?.shopHistory && shopHistory.shopHistory.length > 0) {
-      const lastSeen = shopHistory.shopHistory[0].date;
+    if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
+      const lastSeen = cosmeticData.shopHistory[0].date;
       return formatDate(lastSeen);
     }
-    return "Unknown";
+    return "Never in shop";
   };
 
   const getReleaseDate = () => {
@@ -111,9 +119,9 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     if (cosmetic.series?.value) {
       return cosmetic.series.value;
     }
-    // Then check if the shop history has set information
-    if (shopHistory?.set?.value) {
-      return shopHistory.set.value;
+    // Then check if the cosmetic data has set information
+    if (cosmeticData?.set?.value) {
+      return cosmeticData.set.value;
     }
     // If no set information is available
     return "No Set";
@@ -241,11 +249,11 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
               )}
 
               {/* Shop History */}
-              {shopHistory?.shopHistory && shopHistory.shopHistory.length > 0 && (
+              {cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0 && (
                 <div className="bg-slate-800/50 rounded-xl p-6 space-y-4">
                   <h3 className="text-xl font-bold text-white">Recent Shop Appearances</h3>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {shopHistory.shopHistory.slice(0, 5).map((entry: any, index: number) => (
+                    {cosmeticData.shopHistory.slice(0, 5).map((entry: any, index: number) => (
                       <div key={index} className="text-sm text-gray-300">
                         {formatDate(entry.date)}
                       </div>
