@@ -94,41 +94,90 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     }
   };
 
-  const getLastSeen = () => {
-    // Check if it has shop history first
+  const getAvailabilityInfo = () => {
+    // Check if it has shopHistory (has been in item shop)
     if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
       const lastShopDate = formatDate(cosmeticData.shopHistory[0].date);
-      return `${lastShopDate} (Item Shop)`;
+      const totalAppearances = cosmeticData.shopHistory.length;
+      return {
+        source: "Item Shop",
+        details: `Last seen: ${lastShopDate} (${totalAppearances} appearance${totalAppearances > 1 ? 's' : ''})`
+      };
     }
     
-    // Check lastAppearance data
+    // Check lastAppearance for items that might have appeared but not in shop
     if (cosmeticData?.lastAppearance?.date) {
       const lastSeenDate = formatDate(cosmeticData.lastAppearance.date);
       const daysAgo = cosmeticData.lastAppearance.unseenFor || 0;
-      return `${lastSeenDate} (${daysAgo} days ago)`;
+      return {
+        source: "Special Release",
+        details: `Last seen: ${lastSeenDate} (${daysAgo} days ago)`
+      };
     }
     
-    // Check if it's from Battle Pass based on introduction data
-    if (cosmetic.introduction?.chapter && cosmetic.introduction?.season) {
-      return `Chapter ${cosmetic.introduction.chapter}, Season ${cosmetic.introduction.season} (Battle Pass)`;
-    }
-    
-    // Check if it has gameplayTags that might indicate source
+    // Check gameplayTags to determine source
     if (cosmeticData?.gameplayTags) {
       const tags = cosmeticData.gameplayTags;
-      if (tags.some((tag: string) => tag.toLowerCase().includes('battlepass'))) {
-        return "Battle Pass";
+      
+      // Battle Pass items
+      if (tags.some((tag: string) => tag.toLowerCase().includes('battlepass') || tag.toLowerCase().includes('season'))) {
+        const season = cosmetic.introduction ? `Chapter ${cosmetic.introduction.chapter}, Season ${cosmetic.introduction.season}` : "Unknown Season";
+        return {
+          source: "Battle Pass",
+          details: `From ${season} Battle Pass`
+        };
       }
+      
+      // Starter Pack items
       if (tags.some((tag: string) => tag.toLowerCase().includes('starter'))) {
-        return "Starter Pack";
+        return {
+          source: "Starter Pack",
+          details: "Available as Starter Pack"
+        };
       }
+      
+      // Crew Pack items
       if (tags.some((tag: string) => tag.toLowerCase().includes('crew'))) {
-        return "Fortnite Crew";
+        return {
+          source: "Fortnite Crew",
+          details: "Fortnite Crew Exclusive"
+        };
       }
+      
+      // Tournament/Cup rewards
+      if (tags.some((tag: string) => tag.toLowerCase().includes('tournament') || tag.toLowerCase().includes('cup'))) {
+        return {
+          source: "Tournament Reward",
+          details: "Earned from tournaments"
+        };
+      }
+    }
+    
+    // Check if it's part of a promotional set or series
+    if (cosmetic.series?.value) {
+      const seriesName = cosmetic.series.value;
+      if (seriesName.toLowerCase().includes('marvel') || seriesName.toLowerCase().includes('dc') || 
+          seriesName.toLowerCase().includes('star wars') || seriesName.toLowerCase().includes('gaming')) {
+        return {
+          source: "Collaboration",
+          details: `Part of ${seriesName} collaboration`
+        };
+      }
+    }
+    
+    // If it has introduction data but no shop history, likely Battle Pass
+    if (cosmetic.introduction?.chapter && cosmetic.introduction?.season && (!cosmeticData?.shopHistory || cosmeticData.shopHistory.length === 0)) {
+      return {
+        source: "Battle Pass",
+        details: `Chapter ${cosmetic.introduction.chapter}, Season ${cosmetic.introduction.season} Battle Pass`
+      };
     }
     
     // Default fallback
-    return "Special Release";
+    return {
+      source: "Unknown Source",
+      details: "Source information not available"
+    };
   };
 
   const getReleaseDate = () => {
@@ -150,6 +199,8 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     // If no set information is available
     return "No Set";
   };
+
+  const availabilityInfo = getAvailabilityInfo();
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -235,23 +286,28 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                   Release Information
                 </h3>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <p className="text-gray-400 text-sm">First Released</p>
                     <p className="text-white font-medium">{getReleaseDate()}</p>
                   </div>
                   
                   <div>
-                    <p className="text-gray-400 text-sm">Availability</p>
+                    <p className="text-gray-400 text-sm">Source</p>
                     <div className="flex items-center gap-2">
                       {loadingHistory ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                       ) : (
                         <Eye className="w-4 h-4 text-green-400" />
                       )}
-                      <p className="text-white font-medium">
-                        {loadingHistory ? "Loading..." : getLastSeen()}
-                      </p>
+                      <div>
+                        <p className="text-white font-medium">
+                          {loadingHistory ? "Loading..." : availabilityInfo.source}
+                        </p>
+                        <p className="text-gray-300 text-sm">
+                          {loadingHistory ? "" : availabilityInfo.details}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
