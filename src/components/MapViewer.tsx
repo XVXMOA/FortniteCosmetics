@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,13 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Map image URL from Fortnite-API
-  const mapImageUrl = `https://media.fortniteapi.io/images/map.png?showPOI=false`;
+  // Season-specific map image URL from Fortnite-API
+  const getMapImageUrl = (chapter: number, season: number) => {
+    // Use the Fortnite API with chapter and season parameters
+    return `https://media.fortniteapi.io/images/map.png?showPOI=false&chapter=${chapter}&season=${season}`;
+  };
+  
+  const mapImageUrl = getMapImageUrl(chapter, season);
   
   const getSeasonName = (chapter: number, season: number) => {
     // You can add more specific season names here
@@ -184,12 +188,18 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
     setIsDragging(false);
   };
 
-  // Reset position when zoom changes to prevent getting stuck
+  // Reset position when zoom changes to prevent getting stuck or when chapter/season changes
   useEffect(() => {
     if (zoom <= 1) {
       setPosition({ x: 0, y: 0 });
     }
   }, [zoom]);
+
+  // Reset zoom and position when chapter or season changes
+  useEffect(() => {
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  }, [chapter, season]);
 
   return (
     <div className="space-y-6">
@@ -267,7 +277,8 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
             }}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "/placeholder.svg";
+              // Fallback to generic map if specific season map fails
+              target.src = "https://media.fortniteapi.io/images/map.png?showPOI=false";
             }}
             draggable={false}
           />
@@ -282,7 +293,7 @@ export const MapViewer = ({ chapter, season }: MapViewerProps) => {
         
         <div className="mt-4 text-center">
           <p className="text-gray-400 text-sm">
-            Map data from Fortnite API • Zoom: {Math.round(zoom * 100)}% • {zoom > 1 ? 'Drag to pan' : 'Scroll to zoom'}
+            Map data from Fortnite API • Chapter {chapter} Season {season} • Zoom: {Math.round(zoom * 100)}% • {zoom > 1 ? 'Drag to pan' : 'Scroll to zoom'}
           </p>
         </div>
       </div>
