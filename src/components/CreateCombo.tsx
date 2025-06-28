@@ -406,21 +406,57 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         </div>
       )}
 
-      {/* Item Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-w-7xl mx-auto min-h-[600px]">
-        {currentItems.map((item, index) => (
-          <div
-            key={item.id}
-            className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-              selectedCombo[currentStep]?.id === item.id
-                ? 'ring-4 ring-purple-500 rounded-xl'
-                : ''
-            }`}
-            onClick={() => handleItemSelect(item)}
-          >
-            <CosmeticCard cosmetic={item} index={index} />
-          </div>
-        ))}
+      {/* Item Grid with Navigation Buttons */}
+      <div className="relative max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 min-h-[600px]">
+          {currentItems.map((item, index) => (
+            <div
+              key={item.id}
+              className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
+                selectedCombo[currentStep]?.id === item.id
+                  ? 'ring-4 ring-purple-500 rounded-xl'
+                  : ''
+              }`}
+              onClick={() => handleItemSelect(item)}
+            >
+              <CosmeticCard cosmetic={item} index={index} />
+              
+              {/* Navigation buttons positioned above the 6th item (index 5) */}
+              {index === 5 && (
+                <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 flex gap-4 z-10">
+                  {steps.findIndex(s => s.key === currentStep) > 0 && (
+                    <Button
+                      onClick={handlePrevious}
+                      variant="outline"
+                      className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white bg-slate-800/90 backdrop-blur-sm"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Previous
+                    </Button>
+                  )}
+
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceed()}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                  >
+                    {isLastStep() ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Preview
+                      </>
+                    ) : (
+                      <>
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Pagination */}
@@ -479,8 +515,8 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex justify-between items-center max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
+      {/* Bottom Navigation */}
+      <div className="flex justify-center max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
         <Button
           onClick={onBack}
           variant="outline"
@@ -489,37 +525,6 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Menu
         </Button>
-
-        <div className="flex gap-4">
-          {steps.findIndex(s => s.key === currentStep) > 0 && (
-            <Button
-              onClick={handlePrevious}
-              variant="outline"
-              className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-          )}
-
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
-          >
-            {isLastStep() ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Preview Combo
-              </>
-            ) : (
-              <>
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
-            )}
-          </Button>
-        </div>
       </div>
     </div>
   );
