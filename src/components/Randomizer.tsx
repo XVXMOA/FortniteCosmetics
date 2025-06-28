@@ -1,14 +1,10 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Shuffle, Save } from "lucide-react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
 import { CosmeticDetailModal } from "./CosmeticDetailModal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Shuffle, Sparkles, Heart, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SearchBar } from "./SearchBar";
-import { SortDropdown, SortOption } from "./SortDropdown";
-import { FilterDropdown, FilterOptions } from "./FilterDropdown";
 
 interface RandomizerProps {
   cosmetics: CosmeticItem[];
@@ -19,110 +15,17 @@ interface RandomCombo {
   backpack?: CosmeticItem;
   pickaxe?: CosmeticItem;
   glider?: CosmeticItem;
-}
-
-interface SavedCombo extends RandomCombo {
-  id: string;
-  name: string;
-  savedAt: string;
+  emote?: CosmeticItem;
 }
 
 export const Randomizer = ({ cosmetics }: RandomizerProps) => {
-  const [randomCombo, setRandomCombo] = useState<RandomCombo>({});
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [comboName, setComboName] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
-  const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
+  const [currentCombo, setCurrentCombo] = useState<RandomCombo>({});
   const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const getRandomItem = (type: string): CosmeticItem | undefined => {
-    const items = cosmetics.filter(item => 
-      item.type.value.toLowerCase() === type.toLowerCase()
-    );
-    
-    if (items.length === 0) return undefined;
-    
-    const randomIndex = Math.floor(Math.random() * items.length);
-    return items[randomIndex];
-  };
-
-  const generateRandomCombo = async () => {
-    setIsGenerating(true);
-    
-    // Add delay for animation effect
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newCombo: RandomCombo = {
-      outfit: getRandomItem("outfit"),
-      backpack: getRandomItem("backpack"),
-      pickaxe: getRandomItem("pickaxe"),
-      glider: getRandomItem("glider"),
-    };
-    
-    console.log("Generated random combo:", newCombo);
-    setRandomCombo(newCombo);
-    setIsGenerating(false);
-  };
-
-  const saveCombo = () => {
-    if (!comboName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a name for your combo",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const savedCombo: SavedCombo = {
-      ...randomCombo,
-      id: Date.now().toString(),
-      name: comboName.trim(),
-      savedAt: new Date().toISOString(),
-    };
-
-    const existingSaved = localStorage.getItem('fortnite-saved-combos');
-    const savedCombos = existingSaved ? JSON.parse(existingSaved) : [];
-    savedCombos.push(savedCombo);
-    
-    localStorage.setItem('fortnite-saved-combos', JSON.stringify(savedCombos));
-    
-    toast({
-      title: "Combo Saved!",
-      description: `"${comboName}" has been saved to your collection.`,
-    });
-
-    setSaveDialogOpen(false);
-    setComboName("");
-  };
-
-  const hasValidCombo = Object.values(randomCombo).some(item => item !== undefined);
-
-  const comboItems = [
-    { key: "outfit", item: randomCombo.outfit, label: "Outfit" },
-    { key: "backpack", item: randomCombo.backpack, label: "Back Bling" },
-    { key: "pickaxe", item: randomCombo.pickaxe, label: "Pickaxe" },
-    { key: "glider", item: randomCombo.glider, label: "Glider" },
-  ];
-
-  const getAvailableRarities = () => {
-    const rarities = [...new Set(cosmetics.map(item => item.rarity.displayValue))];
-    return rarities.sort();
-  };
-
-  const getAvailableSeries = () => {
-    const series = [...new Set(cosmetics
-      .filter(item => item.series)
-      .map(item => item.series!.value)
-    )];
-    return series.sort();
-  };
-
   const handleCosmeticClick = (cosmetic: CosmeticItem) => {
+    console.log('Randomizer card clicked:', cosmetic.name);
     setSelectedCosmetic(cosmetic);
     setIsModalOpen(true);
   };
@@ -132,168 +35,128 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
     setSelectedCosmetic(null);
   };
 
+  const getRandomItemByType = (type: string): CosmeticItem | undefined => {
+    const items = cosmetics.filter(item => 
+      item.type.value.toLowerCase() === type.toLowerCase()
+    );
+    if (items.length === 0) return undefined;
+    return items[Math.floor(Math.random() * items.length)];
+  };
+
+  const generateRandomCombo = () => {
+    const newCombo: RandomCombo = {
+      outfit: getRandomItemByType("outfit"),
+      backpack: getRandomItemByType("backpack"),
+      pickaxe: getRandomItemByType("pickaxe"),
+      glider: getRandomItemByType("glider"),
+      emote: getRandomItemByType("emote")
+    };
+    
+    setCurrentCombo(newCombo);
+    
+    toast({
+      title: "New combo generated!",
+      description: "Your random Fortnite loadout is ready.",
+    });
+  };
+
+  const saveCombo = () => {
+    if (Object.keys(currentCombo).length === 0) {
+      toast({
+        title: "No combo to save",
+        description: "Generate a combo first before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const savedCombos = JSON.parse(localStorage.getItem('fortnite-saved-combos') || '[]');
+    const comboWithId = {
+      id: Date.now().toString(),
+      ...currentCombo,
+      createdAt: new Date().toISOString()
+    };
+    
+    savedCombos.push(comboWithId);
+    localStorage.setItem('fortnite-saved-combos', JSON.stringify(savedCombos));
+    
+    toast({
+      title: "Combo saved!",
+      description: "Your combo has been saved to your collection.",
+    });
+  };
+
+  const hasCombo = Object.values(currentCombo).some(item => item !== undefined);
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Sparkles className="w-8 h-8 text-yellow-400" />
-          <h2 className="text-4xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Combo Randomizer
-          </h2>
-          <Sparkles className="w-8 h-8 text-yellow-400" />
-        </div>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-          Generate the perfect random loadout with one click! Get a complete combo with outfit, back bling, pickaxe, and glider.
-        </p>
-      </div>
-
-      {/* Search and Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between max-w-4xl mx-auto">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search cosmetics..."
-        />
-        
-        <div className="flex gap-3">
-          <FilterDropdown
-            selectedFilters={filters}
-            onFiltersChange={setFilters}
-            availableRarities={getAvailableRarities()}
-            availableSeries={getAvailableSeries()}
-          />
-          <SortDropdown 
-            currentSort={currentSort}
-            onSortChange={setCurrentSort}
-          />
-        </div>
-      </div>
-
-      {/* Generate Button */}
       <div className="text-center">
-        <Button
-          onClick={generateRandomCombo}
-          disabled={isGenerating}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:scale-100"
-        >
-          {isGenerating ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Shuffle className="w-5 h-5 mr-3" />
-              Generate Random Combo
-            </>
+        <h2 className="text-4xl font-bold text-white mb-4">
+          Loadout Randomizer
+        </h2>
+        <p className="text-xl text-gray-300 mb-8">
+          Generate random Fortnite combinations and discover new styles
+        </p>
+        
+        <div className="flex gap-4 justify-center flex-wrap">
+          <Button
+            onClick={generateRandomCombo}
+            size="lg"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            <Shuffle className="w-5 h-5 mr-2" />
+            Generate Random Combo
+          </Button>
+          
+          {hasCombo && (
+            <Button
+              onClick={saveCombo}
+              size="lg"
+              variant="outline"
+              className="border-green-500 text-green-400 hover:bg-green-500 hover:text-white"
+            >
+              <Save className="w-5 h-5 mr-2" />
+              Save Combo
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
 
-      {/* Results */}
-      {Object.keys(randomCombo).length > 0 && (
-        <div className="space-y-6">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold text-white mb-2">Your Random Combo</h3>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {comboItems.map(({ key, item, label }, index) => (
-              <div key={key} className="space-y-3">
-                <h4 className="text-lg font-semibold text-center text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {label}
-                </h4>
-                {item ? (
+      {hasCombo && (
+        <div className="bg-slate-800/50 rounded-2xl p-8 border border-gray-700">
+          <h3 className="text-2xl font-bold text-white mb-6 text-center">
+            Your Random Loadout
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {Object.entries(currentCombo).map(([type, item], index) => {
+              if (!item) return null;
+              
+              return (
+                <div key={type} className="text-center">
+                  <h4 className="text-lg font-semibold text-white mb-3 capitalize">
+                    {type === "outfit" ? "Skin" : type}
+                  </h4>
                   <CosmeticCard 
                     cosmetic={item} 
-                    index={index} 
+                    index={index}
                     onClick={handleCosmeticClick}
                   />
-                ) : (
-                  <div className="aspect-square bg-slate-800/50 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center text-gray-400">
-                    <div className="text-4xl mb-2">❓</div>
-                    <p className="text-sm">No {label} Available</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Combo Actions */}
-          <div className="text-center space-x-4">
-            <Button
-              onClick={generateRandomCombo}
-              variant="outline"
-              className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
-            >
-              <Shuffle className="w-4 h-4 mr-2" />
-              Generate New Combo
-            </Button>
-            
-            {hasValidCombo && (
-              <Button
-                onClick={() => setSaveDialogOpen(true)}
-                className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700"
-              >
-                <Heart className="w-4 h-4 mr-2" />
-                Save Combo
-              </Button>
-            )}
-          </div>
-
-          {/* Save Dialog */}
-          {saveDialogOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-                <h3 className="text-xl font-bold text-white mb-4">Save Your Combo</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Combo Name
-                    </label>
-                    <Input
-                      value={comboName}
-                      onChange={(e) => setComboName(e.target.value)}
-                      placeholder="Enter a name for your combo..."
-                      className="bg-slate-700 border-gray-600 text-white"
-                      onKeyDown={(e) => e.key === 'Enter' && saveCombo()}
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={saveCombo}
-                      className="flex-1 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setSaveDialogOpen(false);
-                        setComboName("");
-                      }}
-                      variant="outline"
-                      className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Getting Started */}
-      {Object.keys(randomCombo).length === 0 && (
-        <div className="text-center py-12">
+      {!hasCombo && (
+        <div className="text-center py-20">
           <div className="text-8xl mb-6">🎲</div>
-          <h3 className="text-2xl font-semibold text-white mb-4">Ready to Get Random?</h3>
-          <p className="text-gray-400 max-w-md mx-auto">
-            Click the button above to generate your first random Fortnite combo. Mix and match items you might never have considered!
+          <h3 className="text-2xl font-semibold text-white mb-4">
+            Ready to randomize?
+          </h3>
+          <p className="text-gray-400 text-lg">
+            Click the button above to generate your first random combo!
           </p>
         </div>
       )}

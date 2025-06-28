@@ -1,20 +1,19 @@
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Trash2, ArrowLeft } from "lucide-react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
-import { Button } from "@/components/ui/button";
-import { Trash2, Heart } from "lucide-react";
-import { SearchBar } from "./SearchBar";
-import { SortDropdown, SortOption } from "./SortDropdown";
 import { CosmeticDetailModal } from "./CosmeticDetailModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface SavedCombo {
   id: string;
-  name: string;
   outfit?: CosmeticItem;
   backpack?: CosmeticItem;
   pickaxe?: CosmeticItem;
   glider?: CosmeticItem;
-  savedAt: string;
+  emote?: CosmeticItem;
+  createdAt: string;
 }
 
 interface SavedCombosProps {
@@ -23,70 +22,12 @@ interface SavedCombosProps {
 
 export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
   const [savedCombos, setSavedCombos] = useState<SavedCombo[]>([]);
-  const [filteredCombos, setFilteredCombos] = useState<SavedCombo[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentSort, setCurrentSort] = useState<SortOption>("most-recent");
   const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    loadSavedCombos();
-  }, []);
-
-  useEffect(() => {
-    filterAndSortCombos();
-  }, [savedCombos, searchQuery, currentSort]);
-
-  const loadSavedCombos = () => {
-    const saved = localStorage.getItem('fortnite-saved-combos');
-    if (saved) {
-      setSavedCombos(JSON.parse(saved));
-    }
-  };
-
-  const filterAndSortCombos = () => {
-    let filtered = [...savedCombos];
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(combo =>
-        combo.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (currentSort) {
-        case "alphabetical-a-z":
-          return a.name.localeCompare(b.name);
-        case "alphabetical-z-a":
-          return b.name.localeCompare(a.name);
-        case "most-recent":
-          return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
-        case "last-seen":
-          return new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime();
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredCombos(filtered);
-  };
-
-  const deleteCombo = (id: string) => {
-    const updated = savedCombos.filter(combo => combo.id !== id);
-    setSavedCombos(updated);
-    localStorage.setItem('fortnite-saved-combos', JSON.stringify(updated));
-  };
-
-  const comboItems = (combo: SavedCombo) => [
-    { key: "outfit", item: combo.outfit, label: "Outfit" },
-    { key: "backpack", item: combo.backpack, label: "Back Bling" },
-    { key: "pickaxe", item: combo.pickaxe, label: "Pickaxe" },
-    { key: "glider", item: combo.glider, label: "Glider" },
-  ];
+  const { toast } = useToast();
 
   const handleCosmeticClick = (cosmetic: CosmeticItem) => {
+    console.log('SavedCombos card clicked:', cosmetic.name);
     setSelectedCosmetic(cosmetic);
     setIsModalOpen(true);
   };
@@ -96,57 +37,99 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
     setSelectedCosmetic(null);
   };
 
+  useEffect(() => {
+    loadSavedCombos();
+  }, []);
+
+  const loadSavedCombos = () => {
+    const saved = JSON.parse(localStorage.getItem('fortnite-saved-combos') || '[]');
+    setSavedCombos(saved.reverse()); // Show newest first
+  };
+
+  const deleteCombo = (comboId: string) => {
+    const updatedCombos = savedCombos.filter(combo => combo.id !== comboId);
+    setSavedCombos(updatedCombos);
+    localStorage.setItem('fortnite-saved-combos', JSON.stringify(updatedCombos.reverse()));
+    
+    toast({
+      title: "Combo deleted",
+      description: "The combo has been removed from your collection.",
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (savedCombos.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            onClick={onBackToRandomizer}
+            variant="outline"
+            size="sm"
+            className="text-gray-400 border-gray-600 hover:text-white hover:border-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Randomizer
+          </Button>
+          <h2 className="text-4xl font-bold text-white">Saved Combos</h2>
+        </div>
+
+        <div className="text-center py-20">
+          <div className="text-8xl mb-6">📦</div>
+          <h3 className="text-2xl font-semibold text-white mb-4">
+            No saved combos yet
+          </h3>
+          <p className="text-gray-400 text-lg mb-8">
+            Generate and save some combos from the randomizer to see them here!
+          </p>
+          <Button
+            onClick={onBackToRandomizer}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          >
+            Go to Randomizer
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Heart className="w-8 h-8 text-pink-400" />
-          <h2 className="text-4xl font-bold text-white bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            Saved Combos
-          </h2>
-          <Heart className="w-8 h-8 text-pink-400" />
-        </div>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-          Your favorite Fortnite loadout combinations saved for quick access.
-        </p>
+      <div className="flex items-center gap-4 mb-6">
+        <Button
+          onClick={onBackToRandomizer}
+          variant="outline"
+          size="sm"
+          className="text-gray-400 border-gray-600 hover:text-white hover:border-white"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Randomizer
+        </Button>
+        <h2 className="text-4xl font-bold text-white">
+          Saved Combos
+          <span className="text-lg font-normal text-gray-400 ml-2">
+            ({savedCombos.length} saved)
+          </span>
+        </h2>
       </div>
 
-      {/* Search and Controls */}
-      {savedCombos.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search saved combos..."
-          />
-          
-          <div className="flex gap-3">
-            <SortDropdown 
-              currentSort={currentSort}
-              onSortChange={setCurrentSort}
-            />
-            <Button
-              onClick={onBackToRandomizer}
-              variant="outline"
-              className="border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white"
-            >
-              Back to Randomizer
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Saved Combos */}
-      {filteredCombos.length > 0 ? (
-        <div className="space-y-8">
-          {filteredCombos.map((combo) => (
-            <div key={combo.id} className="bg-slate-800/50 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{combo.name}</h3>
-                  <p className="text-gray-400">Saved on {new Date(combo.savedAt).toLocaleDateString()}</p>
-                </div>
+      <div className="space-y-8">
+        {savedCombos.map((combo, comboIndex) => (
+          <div 
+            key={combo.id} 
+            className="bg-slate-800/50 rounded-2xl p-6 border border-gray-700 relative"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-white">
+                Combo #{savedCombos.length - comboIndex}
+              </h3>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-400">
+                  Saved on {formatDate(combo.createdAt)}
+                </span>
                 <Button
                   onClick={() => deleteCombo(combo.id)}
                   variant="outline"
@@ -156,54 +139,31 @@ export const SavedCombos = ({ onBackToRandomizer }: SavedCombosProps) => {
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {comboItems(combo).map(({ key, item, label }, index) => (
-                  <div key={key} className="space-y-3">
-                    <h4 className="text-lg font-semibold text-center text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                      {label}
-                    </h4>
-                    {item ? (
-                      <CosmeticCard 
-                        cosmetic={item} 
-                        index={index} 
-                        onClick={handleCosmeticClick}
-                      />
-                    ) : (
-                      <div className="aspect-square bg-slate-800/50 border-2 border-dashed border-gray-600 rounded-xl flex flex-col items-center justify-center text-gray-400">
-                        <div className="text-4xl mb-2">❓</div>
-                        <p className="text-sm">No {label}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
-          ))}
-        </div>
-      ) : savedCombos.length > 0 ? (
-        <div className="text-center py-12">
-          <div className="text-8xl mb-6">🔍</div>
-          <h3 className="text-2xl font-semibold text-white mb-4">No Results Found</h3>
-          <p className="text-gray-400 max-w-md mx-auto mb-6">
-            No saved combos match your search. Try adjusting your search terms.
-          </p>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <div className="text-8xl mb-6">💔</div>
-          <h3 className="text-2xl font-semibold text-white mb-4">No Saved Combos Yet</h3>
-          <p className="text-gray-400 max-w-md mx-auto mb-6">
-            Start by generating random combos and save your favorites to see them here!
-          </p>
-          <Button
-            onClick={onBackToRandomizer}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            Generate Your First Combo
-          </Button>
-        </div>
-      )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {Object.entries(combo).map(([type, item]) => {
+                if (!item || type === 'id' || type === 'createdAt') return null;
+                
+                const itemIndex = Object.keys(combo).indexOf(type);
+                
+                return (
+                  <div key={type} className="text-center">
+                    <h4 className="text-sm font-medium text-gray-300 mb-2 capitalize">
+                      {type === "outfit" ? "Skin" : type}
+                    </h4>
+                    <CosmeticCard 
+                      cosmetic={item} 
+                      index={itemIndex}
+                      onClick={handleCosmeticClick}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       <CosmeticDetailModal
         cosmetic={selectedCosmetic}

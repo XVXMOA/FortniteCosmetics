@@ -75,6 +75,7 @@ export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) =>
   const imageUrl = cosmetic.images?.icon || cosmetic.images?.smallIcon || cosmetic.images?.featured;
 
   const handleClick = () => {
+    console.log('Card clicked:', cosmetic.name);
     if (onClick) {
       onClick(cosmetic);
     }
