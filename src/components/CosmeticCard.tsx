@@ -16,31 +16,56 @@ const rarityColors = {
   mythic: "from-yellow-400 to-yellow-600 border-yellow-400/30",
 };
 
-// Helper function to convert hex colors to CSS custom properties
-const getSeriesGradient = (colors: string[]) => {
-  if (!colors || colors.length === 0) return rarityColors.common;
+// Authentic series color schemes based on Fortnite's actual colors
+const seriesColors = {
+  "marvel series": "from-red-600 to-red-800 border-red-600/30", // Marvel red
+  "dc series": "from-blue-600 to-blue-900 border-blue-600/30", // DC blue
+  "icon series": "from-cyan-400 to-pink-500 border-cyan-400/30", // Cyan to pink gradient
+  "gaming legends series": "from-purple-600 to-indigo-700 border-purple-600/30", // Purple gaming theme
+  "star wars series": "from-yellow-400 to-orange-500 border-yellow-400/30", // Star Wars gold/orange
+  "shadow series": "from-gray-800 to-black border-gray-800/30", // Dark shadow theme
+  "slurp series": "from-cyan-400 to-blue-500 border-cyan-400/30", // Slurp blue/cyan
+  "lava series": "from-red-500 to-orange-600 border-red-500/30", // Lava red/orange
+  "frozen series": "from-blue-200 to-blue-400 border-blue-200/30", // Ice blue
+  "molten series": "from-orange-500 to-red-600 border-orange-500/30", // Molten orange/red
+  "dark series": "from-purple-800 to-black border-purple-800/30", // Dark purple
+  "cup series": "from-yellow-500 to-amber-600 border-yellow-500/30", // Tournament gold
+};
+
+// Helper function to get series gradient from API colors or fallback to predefined
+const getSeriesGradient = (series: { value: string; colors?: string[] }) => {
+  const seriesName = series.value.toLowerCase();
   
-  // Remove the 'ff' alpha channel and convert to proper hex
-  const cleanColors = colors.map(color => '#' + color.slice(0, 6));
-  
-  if (cleanColors.length === 1) {
-    return `from-[${cleanColors[0]}] to-[${cleanColors[0]}] border-[${cleanColors[0]}]/30`;
+  // Check if we have predefined colors for this series
+  if (seriesColors[seriesName as keyof typeof seriesColors]) {
+    return seriesColors[seriesName as keyof typeof seriesColors];
   }
   
-  // Use first and last colors for gradient
-  const firstColor = cleanColors[0];
-  const lastColor = cleanColors[cleanColors.length - 1];
+  // If API provides colors, use them
+  if (series.colors && series.colors.length > 0) {
+    const cleanColors = series.colors.map(color => '#' + color.slice(0, 6));
+    
+    if (cleanColors.length === 1) {
+      return `from-[${cleanColors[0]}] to-[${cleanColors[0]}] border-[${cleanColors[0]}]/30`;
+    }
+    
+    const firstColor = cleanColors[0];
+    const lastColor = cleanColors[cleanColors.length - 1];
+    
+    return `from-[${firstColor}] to-[${lastColor}] border-[${firstColor}]/30`;
+  }
   
-  return `from-[${firstColor}] to-[${lastColor}] border-[${firstColor}]/30`;
+  // Fallback to common rarity
+  return rarityColors.common;
 };
 
 export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
-  // Check if item has series colors
-  const hasSeriesColors = cosmetic.series?.colors && cosmetic.series.colors.length > 0;
+  // Check if item has series
+  const hasSeries = cosmetic.series?.value;
   
   let rarityGradient: string;
-  if (hasSeriesColors) {
-    rarityGradient = getSeriesGradient(cosmetic.series.colors);
+  if (hasSeries) {
+    rarityGradient = getSeriesGradient(cosmetic.series);
   } else {
     const rarityKey = cosmetic.rarity?.value?.toLowerCase() as keyof typeof rarityColors;
     rarityGradient = rarityColors[rarityKey] || rarityColors.common;
