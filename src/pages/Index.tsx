@@ -19,6 +19,10 @@ export interface CosmeticItem {
     value: string;
     displayValue: string;
   };
+  series?: {
+    value: string;
+    colors?: string[];
+  };
   images: {
     smallIcon?: string;
     icon?: string;

@@ -14,23 +14,37 @@ const rarityColors = {
   epic: "from-purple-400 to-purple-600 border-purple-400/30",
   legendary: "from-orange-400 to-orange-600 border-orange-400/30",
   mythic: "from-yellow-400 to-yellow-600 border-yellow-400/30",
-  exotic: "from-cyan-400 to-cyan-600 border-cyan-400/30",
-  transcendent: "from-red-400 to-red-600 border-red-400/30",
-  frozen: "from-blue-200 to-blue-400 border-blue-200/30",
-  lava: "from-red-500 to-orange-500 border-red-500/30",
-  legendary_series: "from-cyan-400 to-purple-500 border-cyan-400/30",
-  dark_series: "from-purple-600 to-black border-purple-600/30",
-  marvel_series: "from-red-500 to-yellow-500 border-red-500/30",
-  dc_series: "from-blue-600 to-gray-800 border-blue-600/30",
-  icon_series: "from-cyan-300 to-pink-400 border-cyan-300/30",
-  shadow_series: "from-gray-700 to-black border-gray-700/30",
-  slurp_series: "from-cyan-400 to-blue-500 border-cyan-400/30",
-  gaming_legends_series: "from-purple-500 to-blue-500 border-purple-500/30"
+};
+
+// Helper function to convert hex colors to CSS custom properties
+const getSeriesGradient = (colors: string[]) => {
+  if (!colors || colors.length === 0) return rarityColors.common;
+  
+  // Remove the 'ff' alpha channel and convert to proper hex
+  const cleanColors = colors.map(color => '#' + color.slice(0, 6));
+  
+  if (cleanColors.length === 1) {
+    return `from-[${cleanColors[0]}] to-[${cleanColors[0]}] border-[${cleanColors[0]}]/30`;
+  }
+  
+  // Use first and last colors for gradient
+  const firstColor = cleanColors[0];
+  const lastColor = cleanColors[cleanColors.length - 1];
+  
+  return `from-[${firstColor}] to-[${lastColor}] border-[${firstColor}]/30`;
 };
 
 export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
-  const rarityKey = cosmetic.rarity?.value?.toLowerCase() as keyof typeof rarityColors;
-  const rarityGradient = rarityColors[rarityKey] || rarityColors.common;
+  // Check if item has series colors
+  const hasSeriesColors = cosmetic.series?.colors && cosmetic.series.colors.length > 0;
+  
+  let rarityGradient: string;
+  if (hasSeriesColors) {
+    rarityGradient = getSeriesGradient(cosmetic.series.colors);
+  } else {
+    const rarityKey = cosmetic.rarity?.value?.toLowerCase() as keyof typeof rarityColors;
+    rarityGradient = rarityColors[rarityKey] || rarityColors.common;
+  }
   
   const imageUrl = cosmetic.images?.icon || cosmetic.images?.smallIcon || cosmetic.images?.featured;
 
@@ -68,7 +82,7 @@ export const CosmeticCard = ({ cosmetic, index }: CosmeticCardProps) => {
             "px-2 py-1 text-xs font-bold rounded-full text-white shadow-lg",
             `bg-gradient-to-r ${rarityGradient}`
           )}>
-            {cosmetic.rarity?.displayValue || "Common"}
+            {cosmetic.series?.value || cosmetic.rarity?.displayValue || "Common"}
           </span>
         </div>
       </div>
