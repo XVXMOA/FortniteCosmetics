@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { CosmeticGrid } from "@/components/CosmeticGrid";
 import { Randomizer } from "@/components/Randomizer";
+import { SavedCombos } from "@/components/SavedCombos";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { SortOption } from "@/components/SortDropdown";
@@ -40,7 +40,7 @@ const Index = () => {
   const [currentCategory, setCurrentCategory] = useState<string>("outfit");
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<"browse" | "randomizer">("browse");
+  const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos">("browse");
   const { toast } = useToast();
 
   const categories = [
@@ -169,6 +169,10 @@ const Index = () => {
     setCurrentView("randomizer");
   };
 
+  const handleSavedCombosView = () => {
+    setCurrentView("saved-combos");
+  };
+
   const handleSortChange = (sort: SortOption) => {
     setCurrentSort(sort);
   };
@@ -180,6 +184,7 @@ const Index = () => {
         currentCategory={currentCategory}
         onCategoryChange={handleCategoryChange}
         onRandomizerView={handleRandomizerView}
+        onSavedCombosView={handleSavedCombosView}
         currentView={currentView}
       />
       
@@ -203,8 +208,10 @@ const Index = () => {
               currentSort={currentSort}
               onSortChange={handleSortChange}
             />
-          ) : (
+          ) : currentView === "randomizer" ? (
             <Randomizer cosmetics={cosmetics} />
+          ) : (
+            <SavedCombos onBackToRandomizer={() => setCurrentView("randomizer")} />
           )}
         </div>
       </main>

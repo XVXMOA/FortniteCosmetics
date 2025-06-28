@@ -3,7 +3,9 @@ import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
 import { Button } from "@/components/ui/button";
-import { Shuffle, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Shuffle, Sparkles, Heart, Save } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface RandomizerProps {
   cosmetics: CosmeticItem[];
@@ -16,9 +18,18 @@ interface RandomCombo {
   glider?: CosmeticItem;
 }
 
+interface SavedCombo extends RandomCombo {
+  id: string;
+  name: string;
+  savedAt: string;
+}
+
 export const Randomizer = ({ cosmetics }: RandomizerProps) => {
   const [randomCombo, setRandomCombo] = useState<RandomCombo>({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [comboName, setComboName] = useState("");
+  const { toast } = useToast();
 
   const getRandomItem = (type: string): CosmeticItem | undefined => {
     const items = cosmetics.filter(item => 
@@ -48,6 +59,40 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
     setRandomCombo(newCombo);
     setIsGenerating(false);
   };
+
+  const saveCombo = () => {
+    if (!comboName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a name for your combo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const savedCombo: SavedCombo = {
+      ...randomCombo,
+      id: Date.now().toString(),
+      name: comboName.trim(),
+      savedAt: new Date().toISOString(),
+    };
+
+    const existingSaved = localStorage.getItem('fortnite-saved-combos');
+    const savedCombos = existingSaved ? JSON.parse(existingSaved) : [];
+    savedCombos.push(savedCombo);
+    
+    localStorage.setItem('fortnite-saved-combos', JSON.stringify(savedCombos));
+    
+    toast({
+      title: "Combo Saved!",
+      description: `"${comboName}" has been saved to your collection.`,
+    });
+
+    setSaveDialogOpen(false);
+    setComboName("");
+  };
+
+  const hasValidCombo = Object.values(randomCombo).some(item => item !== undefined);
 
   const comboItems = [
     { key: "outfit", item: randomCombo.outfit, label: "Outfit" },
@@ -129,7 +174,59 @@ export const Randomizer = ({ cosmetics }: RandomizerProps) => {
               <Shuffle className="w-4 h-4 mr-2" />
               Generate New Combo
             </Button>
+            
+            {hasValidCombo && (
+              <Button
+                onClick={() => setSaveDialogOpen(true)}
+                className="bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700"
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Save Combo
+              </Button>
+            )}
           </div>
+
+          {/* Save Dialog */}
+          {saveDialogOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
+                <h3 className="text-xl font-bold text-white mb-4">Save Your Combo</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Combo Name
+                    </label>
+                    <Input
+                      value={comboName}
+                      onChange={(e) => setComboName(e.target.value)}
+                      placeholder="Enter a name for your combo..."
+                      className="bg-slate-700 border-gray-600 text-white"
+                      onKeyDown={(e) => e.key === 'Enter' && saveCombo()}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={saveCombo}
+                      className="flex-1 bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setSaveDialogOpen(false);
+                        setComboName("");
+                      }}
+                      variant="outline"
+                      className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
