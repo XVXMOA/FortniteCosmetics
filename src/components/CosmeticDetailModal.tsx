@@ -50,13 +50,8 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     
     setLoadingHistory(true);
     try {
-      // Try to get detailed cosmetic data by ID first
-      let response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/${cosmetic.id}`);
-      
-      if (!response.ok || response.status !== 200) {
-        // Fallback to search by name if ID doesn't work
-        response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/search?name=${encodeURIComponent(cosmetic.name)}`);
-      }
+      // Search by name to get the most complete data
+      const response = await fetch(`https://fortnite-api.com/v2/cosmetics/br/search?name=${encodeURIComponent(cosmetic.name)}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -100,12 +95,40 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
   };
 
   const getLastSeen = () => {
+    // Check if it has shop history first
+    if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
+      const lastShopDate = formatDate(cosmeticData.shopHistory[0].date);
+      return `${lastShopDate} (Item Shop)`;
+    }
+    
+    // Check lastAppearance data
     if (cosmeticData?.lastAppearance?.date) {
       const lastSeenDate = formatDate(cosmeticData.lastAppearance.date);
       const daysAgo = cosmeticData.lastAppearance.unseenFor || 0;
       return `${lastSeenDate} (${daysAgo} days ago)`;
     }
-    return "Never in shop";
+    
+    // Check if it's from Battle Pass based on introduction data
+    if (cosmetic.introduction?.chapter && cosmetic.introduction?.season) {
+      return `Chapter ${cosmetic.introduction.chapter}, Season ${cosmetic.introduction.season} (Battle Pass)`;
+    }
+    
+    // Check if it has gameplayTags that might indicate source
+    if (cosmeticData?.gameplayTags) {
+      const tags = cosmeticData.gameplayTags;
+      if (tags.some((tag: string) => tag.toLowerCase().includes('battlepass'))) {
+        return "Battle Pass";
+      }
+      if (tags.some((tag: string) => tag.toLowerCase().includes('starter'))) {
+        return "Starter Pack";
+      }
+      if (tags.some((tag: string) => tag.toLowerCase().includes('crew'))) {
+        return "Fortnite Crew";
+      }
+    }
+    
+    // Default fallback
+    return "Special Release";
   };
 
   const getReleaseDate = () => {
@@ -219,7 +242,7 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                   </div>
                   
                   <div>
-                    <p className="text-gray-400 text-sm">Last Seen</p>
+                    <p className="text-gray-400 text-sm">Availability</p>
                     <div className="flex items-center gap-2">
                       {loadingHistory ? (
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
