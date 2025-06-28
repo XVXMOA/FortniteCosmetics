@@ -41,6 +41,7 @@ const Index = () => {
   const [currentCategory, setCurrentCategory] = useState<string>("outfit");
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo">("browse");
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ rarities: string[]; series: string[] }>({
@@ -74,13 +75,22 @@ const Index = () => {
 
   useEffect(() => {
     if (currentView === "browse" && cosmetics.length > 0) {
-      filterCosmetics();
+      setIsUpdating(true);
+      // Add a small delay to show loading state
+      setTimeout(() => {
+        filterCosmetics();
+        setIsUpdating(false);
+      }, 300);
     }
   }, [currentCategory, cosmetics, currentView, searchQuery, filters]);
 
   useEffect(() => {
     if (currentView === "browse" && filteredCosmetics.length > 0) {
-      sortCosmetics();
+      setIsUpdating(true);
+      setTimeout(() => {
+        sortCosmetics();
+        setIsUpdating(false);
+      }, 200);
     }
   }, [currentSort, filteredCosmetics.length]);
 
@@ -201,26 +211,51 @@ const Index = () => {
   };
 
   const handleCategoryChange = (categoryId: string) => {
+    setIsUpdating(true);
     setCurrentCategory(categoryId);
     setCurrentView("browse");
     setSearchQuery("");
     setFilters({ rarities: [], series: [] });
+    // Loading state will be handled by useEffect
   };
 
   const handleRandomizerView = () => {
-    setCurrentView("randomizer");
+    setIsUpdating(true);
+    setTimeout(() => {
+      setCurrentView("randomizer");
+      setIsUpdating(false);
+    }, 200);
   };
 
   const handleSavedCombosView = () => {
-    setCurrentView("saved-combos");
+    setIsUpdating(true);
+    setTimeout(() => {
+      setCurrentView("saved-combos");
+      setIsUpdating(false);
+    }, 200);
   };
 
   const handleCreateComboView = () => {
-    setCurrentView("create-combo");
+    setIsUpdating(true);
+    setTimeout(() => {
+      setCurrentView("create-combo");
+      setIsUpdating(false);
+    }, 200);
   };
 
   const handleSortChange = (sort: SortOption) => {
     setCurrentSort(sort);
+    // Loading state will be handled by useEffect
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    // Loading state will be handled by useEffect
+  };
+
+  const handleFiltersChange = (newFilters: { rarities: string[]; series: string[] }) => {
+    setFilters(newFilters);
+    // Loading state will be handled by useEffect
   };
 
   const getAvailableRarities = () => {
@@ -250,8 +285,8 @@ const Index = () => {
     return series.sort();
   };
 
-  // Show loading screen until cosmetics are fully loaded
-  if (loading || cosmetics.length === 0) {
+  // Show loading screen for initial load or when updating
+  if (loading || cosmetics.length === 0 || isUpdating) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <LoadingSpinner />
@@ -289,9 +324,9 @@ const Index = () => {
               currentSort={currentSort}
               onSortChange={handleSortChange}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+              onSearchChange={handleSearchChange}
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={handleFiltersChange}
               availableRarities={getAvailableRarities()}
               availableSeries={getAvailableSeries()}
             />
