@@ -14,7 +14,8 @@ interface SidebarProps {
   currentCategory: string;
   onCategoryChange: (categoryId: string) => void;
   onRandomizerView: () => void;
-  currentView: "browse" | "randomizer";
+  onSavedCombosView: () => void;
+  currentView: "browse" | "randomizer" | "saved-combos";
 }
 
 export const Sidebar = ({ 
@@ -22,6 +23,7 @@ export const Sidebar = ({
   currentCategory, 
   onCategoryChange, 
   onRandomizerView,
+  onSavedCombosView,
   currentView 
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +100,27 @@ export const Sidebar = ({
                 }}
               >
                 🎲 Randomizer
+              </button>
+
+              {/* Saved Combos button */}
+              <button
+                onClick={() => {
+                  onSavedCombosView();
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
+                  "animate-fade-in",
+                  currentView === "saved-combos"
+                    ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-pink-500/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-pink-600/20 hover:to-purple-600/20 border border-pink-500/30"
+                )}
+                style={{
+                  animationDelay: `${(categories.length + 1) * 100}ms`,
+                  animationFillMode: "both"
+                }}
+              >
+                💖 Saved Combos
               </button>
             </div>
           </nav>
