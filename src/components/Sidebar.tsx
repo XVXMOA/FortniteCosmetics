@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Menu, X, ChevronDown, ChevronRight, Map as MapIcon } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Category {
@@ -16,9 +16,7 @@ interface SidebarProps {
   onRandomizerView: () => void;
   onSavedCombosView: () => void;
   onCreateComboView: () => void;
-  onMapView: (chapter: number, season: number) => void;
-  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo" | "map";
-  currentMapSelection?: { chapter: number; season: number };
+  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo";
 }
 
 export const Sidebar = ({ 
@@ -28,35 +26,14 @@ export const Sidebar = ({
   onRandomizerView,
   onSavedCombosView,
   onCreateComboView,
-  onMapView,
-  currentView,
-  currentMapSelection
+  currentView
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [cosmeticsExpanded, setCosmeticsExpanded] = useState(true);
-  const [mapExpanded, setMapExpanded] = useState(false);
-  const [expandedChapters, setExpandedChapters] = useState<number[]>([]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
-
-  const toggleChapter = (chapter: number) => {
-    setExpandedChapters(prev => 
-      prev.includes(chapter) 
-        ? prev.filter(c => c !== chapter)
-        : [...prev, chapter]
-    );
-  };
-
-  // Define chapters and their seasons
-  const chapters = [
-    { number: 1, seasons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
-    { number: 2, seasons: [1, 2, 3, 4, 5, 6, 7, 8] },
-    { number: 3, seasons: [1, 2, 3, 4] },
-    { number: 4, seasons: [1, 2, 3, 4] },
-    { number: 5, seasons: [1, 2, 3, 4] }
-  ];
 
   return (
     <>
@@ -117,62 +94,6 @@ export const Sidebar = ({
                       >
                         {category.name}
                       </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Map Section */}
-              <div>
-                <button
-                  onClick={() => setMapExpanded(!mapExpanded)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-white hover:bg-slate-700/50 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapIcon size={16} />
-                    <span className="font-medium">Map</span>
-                  </div>
-                  {mapExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                </button>
-                
-                {mapExpanded && (
-                  <div className="ml-4 mt-2 space-y-1">
-                    {chapters.map((chapter) => (
-                      <div key={chapter.number}>
-                        <button
-                          onClick={() => toggleChapter(chapter.number)}
-                          className="w-full flex items-center justify-between px-4 py-2 text-gray-300 hover:bg-slate-700/50 rounded-lg transition-colors text-sm"
-                        >
-                          <span>Chapter {chapter.number}</span>
-                          {expandedChapters.includes(chapter.number) ? 
-                            <ChevronDown size={14} /> : <ChevronRight size={14} />
-                          }
-                        </button>
-                        
-                        {expandedChapters.includes(chapter.number) && (
-                          <div className="ml-4 mt-1 space-y-1">
-                            {chapter.seasons.map((season) => (
-                              <button
-                                key={`${chapter.number}-${season}`}
-                                onClick={() => {
-                                  onMapView(chapter.number, season);
-                                  setIsOpen(false);
-                                }}
-                                className={cn(
-                                  "w-full text-left px-4 py-2 rounded-lg transition-colors text-xs",
-                                  currentView === "map" && 
-                                  currentMapSelection?.chapter === chapter.number && 
-                                  currentMapSelection?.season === season
-                                    ? "bg-green-600 text-white shadow-lg"
-                                    : "text-gray-400 hover:bg-slate-700/50 hover:text-green-300"
-                                )}
-                              >
-                                Season {season}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
                     ))}
                   </div>
                 )}
