@@ -107,12 +107,15 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
   };
 
   const getSetInfo = () => {
+    // First check if the cosmetic has a series
     if (cosmetic.series?.value) {
       return cosmetic.series.value;
     }
+    // Then check if the shop history has set information
     if (shopHistory?.set?.value) {
       return shopHistory.set.value;
     }
+    // If no set information is available
     return "No Set";
   };
 
@@ -186,14 +189,9 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                     <p className="text-white font-medium capitalize">{cosmetic.rarity?.displayValue || "Common"}</p>
                   </div>
                   
-                  <div>
+                  <div className="sm:col-span-2">
                     <p className="text-gray-400 text-sm">Set</p>
                     <p className="text-white font-medium">{getSetInfo()}</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-gray-400 text-sm">ID</p>
-                    <p className="text-white font-medium font-mono text-xs">{cosmetic.id}</p>
                   </div>
                 </div>
               </div>
