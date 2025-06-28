@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { SearchBar } from "./SearchBar";
 import { SortDropdown, SortOption } from "./SortDropdown";
 import { FilterDropdown, FilterOptions } from "./FilterDropdown";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 interface CreateComboProps {
   cosmetics: CosmeticItem[];
@@ -24,6 +33,8 @@ interface CustomCombo {
 
 type ComboStep = "outfit" | "backpack" | "pickaxe" | "glider" | "emote" | "preview";
 
+const ITEMS_PER_PAGE = 90;
+
 export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const [currentStep, setCurrentStep] = useState<ComboStep>("outfit");
   const [selectedCombo, setSelectedCombo] = useState<CustomCombo>({});
@@ -32,6 +43,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
 
   const steps: { key: ComboStep; label: string; required: boolean }[] = [
@@ -131,6 +143,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     
     if (nextStepIndex < steps.length) {
       setCurrentStep(steps[nextStepIndex].key);
+      setCurrentPage(1); // Reset to first page when changing steps
     }
   };
 
@@ -154,6 +167,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     
     if (prevStepIndex >= 0) {
       setCurrentStep(steps[prevStepIndex].key);
+      setCurrentPage(1); // Reset to first page when changing steps
     }
   };
 
@@ -213,6 +227,22 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     return series.sort();
   };
 
+  // Reset to first page when filters change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sort: SortOption) => {
+    setCurrentSort(sort);
+    setCurrentPage(1);
+  };
+
+  const handleFiltersChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
   if (currentStep === "preview") {
     return (
       <div className="space-y-8">
@@ -256,10 +286,14 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   }
 
   const currentStepData = steps.find(s => s.key === currentStep);
-  const availableItems = getItemsForStep(currentStep);
+  const allItems = getItemsForStep(currentStep);
+  const totalPages = Math.ceil(allItems.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentItems = allItems.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -337,20 +371,20 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <SearchBar
           value={searchQuery}
-          onChange={setSearchQuery}
+          onChange={handleSearchChange}
           placeholder={`Search ${currentStepData?.label.toLowerCase()}...`}
         />
         
         <div className="flex gap-3">
           <FilterDropdown
             selectedFilters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleFiltersChange}
             availableRarities={getAvailableRarities()}
             availableSeries={getAvailableSeries()}
           />
           <SortDropdown 
             currentSort={currentSort}
-            onSortChange={setCurrentSort}
+            onSortChange={handleSortChange}
           />
         </div>
       </div>
@@ -365,9 +399,16 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         </div>
       )}
 
+      {/* Pagination Info */}
+      {allItems.length > 0 && (
+        <div className="text-center text-gray-300">
+          Showing {startIndex + 1}-{Math.min(endIndex, allItems.length)} of {allItems.length} items
+        </div>
+      )}
+
       {/* Item Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-w-7xl mx-auto">
-        {availableItems.map((item, index) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 max-w-7xl mx-auto min-h-[600px]">
+        {currentItems.map((item, index) => (
           <div
             key={item.id}
             className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
@@ -382,7 +423,55 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         ))}
       </div>
 
-      {availableItems.length === 0 && (
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNumber;
+                if (totalPages <= 5) {
+                  pageNumber = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNumber = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + i;
+                } else {
+                  pageNumber = currentPage - 2 + i;
+                }
+                
+                return (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageNumber)}
+                      isActive={currentPage === pageNumber}
+                      className="cursor-pointer"
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {allItems.length === 0 && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-2xl font-semibold text-white mb-2">No Items Found</h3>
@@ -391,7 +480,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between items-center max-w-4xl mx-auto">
+      <div className="flex justify-between items-center max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
         <Button
           onClick={onBack}
           variant="outline"
