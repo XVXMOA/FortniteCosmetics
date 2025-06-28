@@ -1,13 +1,16 @@
 
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
+import { SortDropdown, SortOption } from "./SortDropdown";
 
 interface CosmeticGridProps {
   cosmetics: CosmeticItem[];
   category: string;
+  currentSort: SortOption;
+  onSortChange: (sort: SortOption) => void;
 }
 
-export const CosmeticGrid = ({ cosmetics, category }: CosmeticGridProps) => {
+export const CosmeticGrid = ({ cosmetics, category, currentSort, onSortChange }: CosmeticGridProps) => {
   if (cosmetics.length === 0) {
     return (
       <div className="text-center py-12">
@@ -20,13 +23,18 @@ export const CosmeticGrid = ({ cosmetics, category }: CosmeticGridProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-3xl font-bold text-white">
           {category} 
           <span className="text-lg font-normal text-gray-400 ml-2">
             ({cosmetics.length} items)
           </span>
         </h2>
+        
+        <SortDropdown 
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

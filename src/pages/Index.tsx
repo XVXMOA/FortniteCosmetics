@@ -5,6 +5,7 @@ import { CosmeticGrid } from "@/components/CosmeticGrid";
 import { Randomizer } from "@/components/Randomizer";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
+import { SortOption } from "@/components/SortDropdown";
 
 export interface CosmeticItem {
   id: string;
@@ -33,6 +34,7 @@ const Index = () => {
   const [cosmetics, setCosmetics] = useState<CosmeticItem[]>([]);
   const [filteredCosmetics, setFilteredCosmetics] = useState<CosmeticItem[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>("outfit");
+  const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"browse" | "randomizer">("browse");
   const { toast } = useToast();
@@ -45,6 +47,17 @@ const Index = () => {
     { id: "emote", name: "Emotes", apiType: "emote" }
   ];
 
+  const rarityOrder = {
+    "common": 1,
+    "uncommon": 2,
+    "rare": 3,
+    "epic": 4,
+    "legendary": 5,
+    "mythic": 6,
+    "exotic": 7,
+    "transcendent": 8
+  };
+
   useEffect(() => {
     fetchCosmetics();
   }, []);
@@ -54,6 +67,12 @@ const Index = () => {
       filterCosmetics();
     }
   }, [currentCategory, cosmetics, currentView]);
+
+  useEffect(() => {
+    if (currentView === "browse") {
+      sortCosmetics();
+    }
+  }, [currentSort, filteredCosmetics.length]);
 
   const fetchCosmetics = async () => {
     try {
@@ -96,6 +115,47 @@ const Index = () => {
     setFilteredCosmetics(filtered);
   };
 
+  const sortCosmetics = () => {
+    const sorted = [...filteredCosmetics].sort((a, b) => {
+      switch (currentSort) {
+        case "rarity-low-high":
+          const rarityA = rarityOrder[a.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          const rarityB = rarityOrder[b.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          return rarityA - rarityB;
+        
+        case "rarity-high-low":
+          const rarityA2 = rarityOrder[a.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          const rarityB2 = rarityOrder[b.rarity.value.toLowerCase() as keyof typeof rarityOrder] || 0;
+          return rarityB2 - rarityA2;
+        
+        case "alphabetical-a-z":
+          return a.name.localeCompare(b.name);
+        
+        case "alphabetical-z-a":
+          return b.name.localeCompare(a.name);
+        
+        case "last-seen":
+          // Sort by introduction date (older first for rarest)
+          if (!a.introduction || !b.introduction) return 0;
+          const aDate = `${a.introduction.chapter}.${a.introduction.season}`;
+          const bDate = `${b.introduction.chapter}.${b.introduction.season}`;
+          return aDate.localeCompare(bDate);
+        
+        case "most-recent":
+          // Sort by introduction date (newer first)
+          if (!a.introduction || !b.introduction) return 0;
+          const aDate2 = `${a.introduction.chapter}.${a.introduction.season}`;
+          const bDate2 = `${b.introduction.chapter}.${b.introduction.season}`;
+          return bDate2.localeCompare(aDate2);
+        
+        default:
+          return 0;
+      }
+    });
+    
+    setFilteredCosmetics(sorted);
+  };
+
   const handleCategoryChange = (categoryId: string) => {
     setCurrentCategory(categoryId);
     setCurrentView("browse");
@@ -103,6 +163,10 @@ const Index = () => {
 
   const handleRandomizerView = () => {
     setCurrentView("randomizer");
+  };
+
+  const handleSortChange = (sort: SortOption) => {
+    setCurrentSort(sort);
   };
 
   return (
@@ -132,6 +196,8 @@ const Index = () => {
             <CosmeticGrid 
               cosmetics={filteredCosmetics}
               category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
+              currentSort={currentSort}
+              onSortChange={handleSortChange}
             />
           ) : (
             <Randomizer cosmetics={cosmetics} />
