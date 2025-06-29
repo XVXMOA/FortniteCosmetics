@@ -267,15 +267,16 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
             isMobile ? "space-y-6" : "grid grid-cols-1 lg:grid-cols-2"
           )}>
             {/* Image Section */}
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col items-center">
               <div className={cn(
-                "aspect-[3/4] rounded-xl overflow-hidden border-4 bg-slate-800",
+                "aspect-[3/4] rounded-xl overflow-hidden border-4 bg-slate-800 max-w-[140px] w-full mx-auto",
                 `bg-gradient-to-br ${rarityGradient}`
               )}>
                 <img
                   src={fullBodyImage || fallbackImage}
                   alt={cosmetic.name}
                   className="w-full h-full object-cover"
+                  style={{ maxWidth: '140px', maxHeight: '210px', margin: '0 auto' }}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = fallbackImage;
