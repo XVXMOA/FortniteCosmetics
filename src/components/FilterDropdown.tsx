@@ -29,6 +29,9 @@ export const FilterDropdown = ({
   availableRarities,
   availableSeries,
 }: FilterDropdownProps) => {
+  const [rarityOpen, setRarityOpen] = useState(false);
+  const [seriesOpen, setSeriesOpen] = useState(false);
+
   const defaultRarities = [
     "Common",
     "Uncommon", 
@@ -73,7 +76,7 @@ export const FilterDropdown = ({
   return (
     <div className="flex gap-2">
       {/* Rarity Filter Dropdown */}
-      <DropdownMenu>
+      <DropdownMenu open={rarityOpen} onOpenChange={setRarityOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
             <Filter className="w-4 h-4 mr-2" />
@@ -86,7 +89,11 @@ export const FilterDropdown = ({
             <ChevronDown className="w-4 h-4 ml-2" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-48 bg-slate-800 border-gray-600" style={{ zIndex: 9999 }}>
+        <DropdownMenuContent 
+          className="w-48 bg-slate-800 border-gray-600" 
+          style={{ zIndex: 9999 }}
+          onInteractOutside={() => setRarityOpen(false)}
+        >
           <ScrollArea className="h-48">
             <div className="p-1">
               <DropdownMenuLabel className="text-white text-sm">Rarities</DropdownMenuLabel>
@@ -108,7 +115,7 @@ export const FilterDropdown = ({
 
       {/* Series Filter Dropdown */}
       {availableSeries.length > 0 && (
-        <DropdownMenu>
+        <DropdownMenu open={seriesOpen} onOpenChange={setSeriesOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
               <Filter className="w-4 h-4 mr-2" />
@@ -121,7 +128,11 @@ export const FilterDropdown = ({
               <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 bg-slate-800 border-gray-600" style={{ zIndex: 9999 }}>
+          <DropdownMenuContent 
+            className="w-48 bg-slate-800 border-gray-600" 
+            style={{ zIndex: 9999 }}
+            onInteractOutside={() => setSeriesOpen(false)}
+          >
             <ScrollArea className="h-48">
               <div className="p-1">
                 <DropdownMenuLabel className="text-white text-sm">Series</DropdownMenuLabel>

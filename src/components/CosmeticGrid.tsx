@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { CosmeticCard } from "./CosmeticCard";
@@ -56,39 +55,45 @@ export const CosmeticGrid = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-3xl font-bold text-white">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white">
           {category} 
-          <span className="text-lg font-normal text-gray-400 ml-2">
+          <span className="text-base sm:text-lg font-normal text-gray-400 ml-2">
             ({cosmetics.length} items)
           </span>
         </h2>
       </div>
 
       {/* Search and Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <SearchBar
-          value={searchQuery}
-          onChange={onSearchChange}
-          placeholder={`Search ${category.toLowerCase()}...`}
-        />
+      <div className="space-y-4">
+        {/* Search Bar - Full Width */}
+        <div className="w-full">
+          <SearchBar
+            value={searchQuery}
+            onChange={onSearchChange}
+            placeholder={`Search ${category.toLowerCase()}...`}
+          />
+        </div>
         
-        <div className="flex gap-3">
-          <FilterDropdown
-            selectedFilters={filters}
-            onFiltersChange={onFiltersChange}
-            availableRarities={availableRarities}
-            availableSeries={availableSeries}
-          />
-          <SortDropdown 
-            currentSort={currentSort}
-            onSortChange={onSortChange}
-          />
+        {/* Filters and Sort - Scrollable Container */}
+        <div className="w-full overflow-x-auto">
+          <div className="flex gap-3 min-w-max pb-2">
+            <FilterDropdown
+              selectedFilters={filters}
+              onFiltersChange={onFiltersChange}
+              availableRarities={availableRarities}
+              availableSeries={availableSeries}
+            />
+            <SortDropdown 
+              currentSort={currentSort}
+              onSortChange={onSortChange}
+            />
+          </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
         {cosmetics.map((cosmetic, index) => (
           <CosmeticCard 
             key={cosmetic.id} 

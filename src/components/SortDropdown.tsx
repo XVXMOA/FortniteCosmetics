@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ChevronDown, ArrowUpAZ, ArrowDownAZ, ArrowUpZA, ArrowDownZA, Calendar, Eye } from "lucide-react";
 import {
@@ -56,10 +55,16 @@ const sortOptions = [
 ];
 
 export const SortDropdown = ({ currentSort, onSortChange }: SortDropdownProps) => {
+  const [open, setOpen] = useState(false);
   const currentOption = sortOptions.find(option => option.value === currentSort);
 
+  const handleSortChange = (sort: SortOption) => {
+    onSortChange(sort);
+    setOpen(false);
+  };
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="outline" 
@@ -75,11 +80,12 @@ export const SortDropdown = ({ currentSort, onSortChange }: SortDropdownProps) =
       <DropdownMenuContent 
         align="end" 
         className="w-[200px] bg-slate-800 border-slate-700 text-white"
+        onInteractOutside={() => setOpen(false)}
       >
         {sortOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
-            onClick={() => onSortChange(option.value)}
+            onClick={() => handleSortChange(option.value)}
             className="flex items-center gap-2 hover:bg-slate-700 focus:bg-slate-700 cursor-pointer"
           >
             <option.icon className="h-4 w-4" />

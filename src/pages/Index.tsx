@@ -315,7 +315,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex">
       <Sidebar 
         categories={categories}
         currentCategory={currentCategory}
@@ -326,47 +326,49 @@ const Index = () => {
         currentView={currentView}
       />
       
-      <main className="transition-all duration-300 ease-in-out lg:ml-64">
-        <div className="p-6">
-          <header className="text-center mb-8">
-            <h1 className="text-5xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Fortnite Vault
-            </h1>
-            <p className="text-xl text-gray-300">
-              Discover and randomize your perfect Fortnite loadout
-            </p>
-          </header>
+      <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-64 overflow-hidden">
+        <div className="h-screen overflow-y-auto">
+          <div className="p-4 sm:p-6 max-w-full">
+            <header className="text-center mb-6 sm:mb-8">
+              <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Fortnite Vault
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-300">
+                Discover and randomize your perfect Fortnite loadout
+              </p>
+            </header>
 
-          {currentView === "browse" ? (
-            <>
-              {isUpdating && (
-                <div className="flex justify-center mb-4">
-                  <LoadingSpinner />
-                </div>
-              )}
-              <CosmeticGrid 
-                cosmetics={filteredCosmetics}
-                category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
-                currentSort={currentSort}
-                onSortChange={handleSortChange}
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-                availableRarities={getAvailableRarities()}
-                availableSeries={getAvailableSeries()}
+            {currentView === "browse" ? (
+              <>
+                {isUpdating && (
+                  <div className="flex justify-center mb-4">
+                    <LoadingSpinner />
+                  </div>
+                )}
+                <CosmeticGrid 
+                  cosmetics={filteredCosmetics}
+                  category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
+                  currentSort={currentSort}
+                  onSortChange={handleSortChange}
+                  searchQuery={searchQuery}
+                  onSearchChange={handleSearchChange}
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  availableRarities={getAvailableRarities()}
+                  availableSeries={getAvailableSeries()}
+                />
+              </>
+            ) : currentView === "randomizer" ? (
+              <Randomizer cosmetics={cosmetics} />
+            ) : currentView === "create-combo" ? (
+              <CreateCombo 
+                cosmetics={cosmetics} 
+                onBack={() => setCurrentView("browse")} 
               />
-            </>
-          ) : currentView === "randomizer" ? (
-            <Randomizer cosmetics={cosmetics} />
-          ) : currentView === "create-combo" ? (
-            <CreateCombo 
-              cosmetics={cosmetics} 
-              onBack={() => setCurrentView("browse")} 
-            />
-          ) : (
-            <SavedCombos onBackToRandomizer={() => setCurrentView("randomizer")} />
-          )}
+            ) : (
+              <SavedCombos onBackToRandomizer={() => setCurrentView("randomizer")} />
+            )}
+          </div>
         </div>
       </main>
     </div>
