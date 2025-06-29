@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,7 +15,9 @@ interface SidebarProps {
   onRandomizerView: () => void;
   onSavedCombosView: () => void;
   onCreateComboView: () => void;
-  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo";
+  currentView: "browse" | "randomizer" | "saved-combos" | "create-combo" | "player-stats" | "item-shop";
+  onPlayerStatsView?: () => void;
+  onItemShopView?: () => void;
 }
 
 export const Sidebar = ({ 
@@ -26,7 +27,9 @@ export const Sidebar = ({
   onRandomizerView,
   onSavedCombosView,
   onCreateComboView,
-  currentView
+  currentView,
+  onPlayerStatsView,
+  onItemShopView
 }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [cosmeticsExpanded, setCosmeticsExpanded] = useState(true);
@@ -151,6 +154,40 @@ export const Sidebar = ({
                 )}
               >
                 Saved Combos
+              </button>
+
+              {/* Player Stats button */}
+              <button
+                onClick={() => {
+                  if (typeof onPlayerStatsView === 'function') onPlayerStatsView();
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
+                  "animate-fade-in relative overflow-hidden",
+                  currentView === "player-stats"
+                    ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg shadow-yellow-400/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-yellow-500/20 hover:to-orange-500/20 border-2 border-yellow-400/30"
+                )}
+              >
+                Player Stats
+              </button>
+
+              {/* Item Shop button */}
+              <button
+                onClick={() => {
+                  if (typeof onItemShopView === 'function') onItemShopView();
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105",
+                  "animate-fade-in relative overflow-hidden",
+                  currentView === "item-shop"
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-blue-400/25"
+                    : "text-white hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 border-2 border-blue-400/30"
+                )}
+              >
+                Item Shop
               </button>
             </div>
           </nav>

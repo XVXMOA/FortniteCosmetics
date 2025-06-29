@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CosmeticItem } from "@/pages/Index";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, RotateCcw, Sparkles } from "lucide-react";
 import { CosmeticCard } from "./CosmeticCard";
 import { ComboViewer3D } from "./ComboViewer3D";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +38,6 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const [currentStep, setCurrentStep] = useState<ComboStep>("outfit");
   const [selectedCombo, setSelectedCombo] = useState<CustomCombo>({});
   const [includeEmotes, setIncludeEmotes] = useState(false);
-  const [includeBackpack, setIncludeBackpack] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
@@ -47,7 +46,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
 
   const steps: { key: ComboStep; label: string; required: boolean }[] = [
     { key: "outfit", label: "Outfit", required: true },
-    { key: "backpack", label: "Back Bling", required: false },
+    { key: "backpack", label: "Back Bling", required: true },
     { key: "pickaxe", label: "Pickaxe", required: true },
     { key: "glider", label: "Glider", required: true },
     { key: "emote", label: "Emote", required: false },
@@ -63,9 +62,29 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
       emote: "emote"
     };
     
-    let items = cosmetics.filter(item => 
-      item.type.value.toLowerCase() === typeMap[step]?.toLowerCase()
-    );
+    let items = cosmetics.filter(item => {
+      const itemType = item.type.value.toLowerCase();
+      const targetType = typeMap[step]?.toLowerCase();
+      
+      // More flexible type matching
+      if (step === "outfit") {
+        return itemType === "outfit" || itemType === "character";
+      }
+      if (step === "backpack") {
+        return itemType === "backpack" || itemType === "back bling";
+      }
+      if (step === "pickaxe") {
+        return itemType === "pickaxe" || itemType === "harvesting tool";
+      }
+      if (step === "glider") {
+        return itemType === "glider" || itemType === "glider";
+      }
+      if (step === "emote") {
+        return itemType === "emote" || itemType === "dance" || itemType === "emoticon";
+      }
+      
+      return itemType === targetType;
+    });
 
     // Apply search filter
     if (searchQuery.trim()) {
@@ -129,10 +148,6 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     // Skip optional steps if not included
     while (nextStepIndex < steps.length) {
       const nextStep = steps[nextStepIndex];
-      if (nextStep.key === "backpack" && !includeBackpack) {
-        nextStepIndex++;
-        continue;
-      }
       if (nextStep.key === "emote" && !includeEmotes) {
         nextStepIndex++;
         continue;
@@ -143,6 +158,9 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     if (nextStepIndex < steps.length) {
       setCurrentStep(steps[nextStepIndex].key);
       setCurrentPage(1); // Reset to first page when changing steps
+      setSearchQuery(""); // Clear search query
+      setFilters({ rarities: [], series: [] }); // Clear filters
+      setCurrentSort("alphabetical-a-z"); // Reset sort
     }
   };
 
@@ -153,10 +171,6 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     // Skip optional steps if not included
     while (prevStepIndex >= 0) {
       const prevStep = steps[prevStepIndex];
-      if (prevStep.key === "backpack" && !includeBackpack) {
-        prevStepIndex--;
-        continue;
-      }
       if (prevStep.key === "emote" && !includeEmotes) {
         prevStepIndex--;
         continue;
@@ -167,6 +181,9 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     if (prevStepIndex >= 0) {
       setCurrentStep(steps[prevStepIndex].key);
       setCurrentPage(1); // Reset to first page when changing steps
+      setSearchQuery(""); // Clear search query
+      setFilters({ rarities: [], series: [] }); // Clear filters
+      setCurrentSort("alphabetical-a-z"); // Reset sort
     }
   };
 
@@ -182,7 +199,6 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
 
   const isLastStep = () => {
     const enabledSteps = steps.filter(step => {
-      if (step.key === "backpack" && !includeBackpack) return false;
       if (step.key === "emote" && !includeEmotes) return false;
       return true;
     });
@@ -242,6 +258,64 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     setCurrentPage(1);
   };
 
+  const getRecommendations = (selectedOutfit: CosmeticItem) => {
+    if (!selectedOutfit.series?.value) return [];
+
+    const recommendations: { [key: string]: CosmeticItem[] } = {};
+    
+    cosmetics.forEach(item => {
+      if (item.id === selectedOutfit.id) return;
+      
+      // Check if item is from the same set
+      if (item.series?.value === selectedOutfit.series?.value) {
+        const itemType = item.type.value.toLowerCase();
+        let category = 'other';
+        
+        if (itemType === 'backpack' || itemType === 'back bling') {
+          category = 'backpack';
+        } else if (itemType === 'pickaxe' || itemType === 'harvesting tool') {
+          category = 'pickaxe';
+        } else if (itemType === 'glider') {
+          category = 'glider';
+        } else if (itemType === 'emote' || itemType === 'dance' || itemType === 'emoticon') {
+          category = 'emote';
+        }
+        
+        if (!recommendations[category]) {
+          recommendations[category] = [];
+        }
+        recommendations[category].push(item);
+      }
+    });
+    
+    return recommendations;
+  };
+
+  const handleRecommendationSelect = (item: CosmeticItem) => {
+    const itemType = item.type.value.toLowerCase();
+    let targetStep: ComboStep = "outfit";
+    
+    if (itemType === 'backpack' || itemType === 'back bling') {
+      targetStep = "backpack";
+    } else if (itemType === 'pickaxe' || itemType === 'harvesting tool') {
+      targetStep = "pickaxe";
+    } else if (itemType === 'glider') {
+      targetStep = "glider";
+    } else if (itemType === 'emote' || itemType === 'dance' || itemType === 'emoticon') {
+      targetStep = "emote";
+    }
+    
+    setSelectedCombo(prev => ({
+      ...prev,
+      [targetStep]: item
+    }));
+    
+    toast({
+      title: "Item Added!",
+      description: `${item.name} has been added to your combo.`,
+    });
+  };
+
   if (currentStep === "preview") {
     return (
       <div className="space-y-8">
@@ -291,6 +365,9 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentItems = allItems.slice(startIndex, endIndex);
 
+  // Get recommendations if outfit is selected
+  const recommendations = selectedCombo.outfit ? getRecommendations(selectedCombo.outfit) : {};
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -339,29 +416,49 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
         </div>
       </div>
 
-      {/* Optional Settings */}
-      {currentStep === "outfit" && (
-        <div className="text-center space-y-4">
-          <h3 className="text-xl font-semibold text-white">Customize Your Experience</h3>
-          <div className="flex justify-center gap-6">
-            <label className="flex items-center gap-2 text-gray-300">
-              <input
-                type="checkbox"
-                checked={includeBackpack}
-                onChange={(e) => setIncludeBackpack(e.target.checked)}
-                className="rounded"
-              />
-              Include Back Bling
-            </label>
-            <label className="flex items-center gap-2 text-gray-300">
-              <input
-                type="checkbox"
-                checked={includeEmotes}
-                onChange={(e) => setIncludeEmotes(e.target.checked)}
-                className="rounded"
-              />
-              Include Emotes
-            </label>
+      {/* Recommendations Section */}
+      {selectedCombo.outfit && Object.keys(recommendations).length > 0 && (
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-yellow-400" />
+            <h3 className="text-xl font-semibold text-white">
+              Recommended Items from {selectedCombo.outfit.series?.displayValue || 'Same Set'}
+            </h3>
+          </div>
+          <p className="text-gray-300 mb-4">
+            These items match your selected outfit perfectly!
+          </p>
+          
+          <div className="space-y-4">
+            {Object.entries(recommendations).map(([category, items]) => (
+              <div key={category}>
+                <h4 className="text-lg font-medium text-white mb-2 capitalize">
+                  {category}s ({items.length})
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                  {items.slice(0, 6).map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="cursor-pointer transition-all duration-200 hover:scale-105 group"
+                      onClick={() => handleRecommendationSelect(item)}
+                    >
+                      <div className="relative">
+                        <CosmeticCard cosmetic={item} index={index} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-green-500/20 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          Match
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {items.length > 6 && (
+                  <p className="text-sm text-gray-400 mt-2">
+                    +{items.length - 6} more items available
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -523,6 +620,24 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
           Back to Menu
         </Button>
       </div>
+
+      {/* Optional Settings */}
+      {currentStep === "outfit" && (
+        <div className="text-center space-y-4">
+          <h3 className="text-xl font-semibold text-white">Customize Your Experience</h3>
+          <div className="flex justify-center gap-6">
+            <label className="flex items-center gap-2 text-gray-300">
+              <input
+                type="checkbox"
+                checked={includeEmotes}
+                onChange={(e) => setIncludeEmotes(e.target.checked)}
+                className="rounded"
+              />
+              Include Emotes
+            </label>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

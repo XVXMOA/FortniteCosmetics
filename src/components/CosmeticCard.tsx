@@ -130,17 +130,21 @@ export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) =>
             {cosmetic.description}
           </p>
         )}
-        
+
+        {/* Last Seen and Source */}
+        <div className="flex flex-col gap-1 mb-2">
+          <span className="text-[11px] text-gray-400">
+            <span className="font-semibold text-white">Last Seen:</span> {cosmetic.introduction ? `C${cosmetic.introduction.chapter}S${cosmetic.introduction.season}` : 'Unknown'}
+          </span>
+          <span className="text-[11px] text-gray-400">
+            <span className="font-semibold text-white">Source:</span> {getSourceLabel(cosmetic)}
+          </span>
+        </div>
+
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-400 capitalize">
             {cosmetic.type?.displayValue || "Item"}
           </span>
-          
-          {cosmetic.introduction && (
-            <span className="text-blue-400 font-medium">
-              C{cosmetic.introduction.chapter}S{cosmetic.introduction.season}
-            </span>
-          )}
         </div>
       </div>
 
@@ -149,3 +153,34 @@ export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) =>
     </div>
   );
 };
+
+// Helper to infer source label
+function getSourceLabel(cosmetic: CosmeticItem): string {
+  // If series is a known collab
+  if (cosmetic.series?.value) {
+    const name = cosmetic.series.value.toLowerCase();
+    if (name.includes('marvel') || name.includes('dc') || name.includes('star wars') || name.includes('gaming')) {
+      return `Collaboration`;
+    }
+  }
+  // If type is present, guess based on type
+  if (cosmetic.type?.value) {
+    const type = cosmetic.type.value.toLowerCase();
+    if (type.includes('crew')) return 'Fortnite Crew';
+    if (type.includes('starter')) return 'Starter Pack';
+    if (type.includes('tournament') || type.includes('cup')) return 'Tournament';
+  }
+  // Fallback to Item Shop for most items
+  return 'Item Shop';
+}
+
+// Helper to format date
+function formatDate(dateString: string): string {
+  if (!dateString) return 'Unknown';
+  try {
+    const d = new Date(dateString);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+  } catch {
+    return 'Unknown';
+  }
+}

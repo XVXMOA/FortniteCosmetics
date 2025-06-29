@@ -7,6 +7,8 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { SortOption } from "@/components/SortDropdown";
 import { CreateCombo } from "@/components/CreateCombo";
+import { PlayerStatsChecker } from "@/components/PlayerStatsChecker";
+import { ItemShop } from "@/components/ItemShop";
 
 export interface CosmeticItem {
   id: string;
@@ -50,7 +52,7 @@ const Index = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo">("browse");
+  const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo" | "player-stats" | "item-shop">("browse");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ rarities: string[]; series: string[] }>({
@@ -263,6 +265,14 @@ const Index = () => {
     }, 200);
   };
 
+  const handlePlayerStatsView = () => {
+    setCurrentView("player-stats");
+  };
+
+  const handleItemShopView = () => {
+    setCurrentView("item-shop");
+  };
+
   const handleSortChange = (sort: SortOption) => {
     setCurrentSort(sort);
     // Loading state will be handled by useEffect
@@ -323,6 +333,8 @@ const Index = () => {
         onRandomizerView={handleRandomizerView}
         onSavedCombosView={handleSavedCombosView}
         onCreateComboView={handleCreateComboView}
+        onPlayerStatsView={handlePlayerStatsView}
+        onItemShopView={handleItemShopView}
         currentView={currentView}
       />
       
@@ -345,7 +357,7 @@ const Index = () => {
                     <LoadingSpinner />
                   </div>
                 )}
-                <CosmeticGrid 
+                <CosmeticGrid
                   cosmetics={filteredCosmetics}
                   category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
                   currentSort={currentSort}
@@ -365,9 +377,13 @@ const Index = () => {
                 cosmetics={cosmetics} 
                 onBack={() => setCurrentView("browse")} 
               />
-            ) : (
+            ) : currentView === "saved-combos" ? (
               <SavedCombos onBackToRandomizer={() => setCurrentView("randomizer")} />
-            )}
+            ) : currentView === "player-stats" ? (
+              <PlayerStatsChecker onBack={() => setCurrentView("browse")} />
+            ) : currentView === "item-shop" ? (
+              <ItemShop />
+            ) : null}
           </div>
         </div>
       </main>

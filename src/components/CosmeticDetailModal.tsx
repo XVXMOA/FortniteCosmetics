@@ -226,7 +226,63 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     return "No Set";
   };
 
-  const availabilityInfo = getAvailabilityInfo();
+  // Helper: get earliest and latest shop dates
+  const getShopDates = () => {
+    if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
+      const sorted = [...cosmeticData.shopHistory].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return {
+        first: sorted[0]?.date,
+        last: sorted[sorted.length - 1]?.date,
+      };
+    }
+    return { first: undefined, last: undefined };
+  };
+
+  // First Added (Introduction): use introduction.added, added, or chapter/season
+  let firstAdded = "Unknown";
+  if (cosmeticData?.introduction?.added) {
+    firstAdded = formatDate(cosmeticData.introduction.added);
+  } else if (cosmeticData?.added) {
+    firstAdded = formatDate(cosmeticData.added);
+  } else if (cosmetic.introduction) {
+    firstAdded = `Chapter ${cosmetic.introduction.chapter}, Season ${cosmetic.introduction.season}`;
+  }
+
+  // Last Seen: latest shop date, or lastAppearance, or unknown
+  const shopDates = getShopDates();
+  const lastSeen = shopDates.last
+    ? formatDate(shopDates.last)
+    : (cosmeticData?.lastAppearance?.date ? formatDate(cosmeticData.lastAppearance.date) : "Unknown");
+
+  // Source: where the item was released (improved for Battle Pass)
+  const getSourceInfo = () => {
+    // 1. Item Shop
+    if (cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0) {
+      return { source: "Item Shop", details: `Seen ${cosmeticData.shopHistory.length} time(s)` };
+    }
+    // 2. Battle Pass
+    if (
+      (typeof cosmeticData?.obtainedType === "string" && cosmeticData.obtainedType.toLowerCase().includes("battle_pass")) ||
+      (cosmeticData?.gameplayTags && cosmeticData.gameplayTags.some((tag) => tag.toLowerCase().includes("battlepass") || tag.toLowerCase().includes("season")))
+    ) {
+      const intro = cosmeticData?.introduction || cosmetic.introduction;
+      const season = intro ? `Chapter ${intro.chapter}, Season ${intro.season}` : "Unknown Season";
+      return { source: "Battle Pass", details: `From ${season} Battle Pass` };
+    }
+    // 3. Crew, Starter Pack, Tournament, etc.
+    if (cosmeticData?.gameplayTags?.some((tag) => tag.toLowerCase().includes("crew"))) {
+      return { source: "Fortnite Crew", details: "Fortnite Crew Exclusive" };
+    }
+    if (cosmeticData?.gameplayTags?.some((tag) => tag.toLowerCase().includes("starter"))) {
+      return { source: "Starter Pack", details: "Available as Starter Pack" };
+    }
+    if (cosmeticData?.gameplayTags?.some((tag) => tag.toLowerCase().includes("tournament") || tag.toLowerCase().includes("cup"))) {
+      return { source: "Tournament Reward", details: "Earned from tournaments" };
+    }
+    // 4. Unknown
+    return { source: "Unknown", details: "Source information not available" };
+  };
+  const sourceInfo = getSourceInfo();
 
   return (
     <div 
@@ -262,10 +318,7 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className={cn(
-            "gap-6",
-            isMobile ? "space-y-6" : "grid grid-cols-1 lg:grid-cols-2"
-          )}>
+          <div className="space-y-6">
             {/* Image Section */}
             <div className="space-y-4 flex flex-col items-center">
               <div className={cn(
@@ -328,13 +381,15 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                   Release Information
                 </h3>
-                
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <p className="text-gray-400 text-sm">First Released</p>
-                    <p className="text-white font-medium">{getReleaseDate()}</p>
+                    <p className="text-gray-400 text-sm">First Added (Introduction)</p>
+                    <p className="text-white font-medium">{firstAdded}</p>
                   </div>
-                  
+                  <div>
+                    <p className="text-gray-400 text-sm">Last Seen</p>
+                    <p className="text-white font-medium">{lastSeen}</p>
+                  </div>
                   <div>
                     <p className="text-gray-400 text-sm">Source</p>
                     <div className="flex items-center gap-2">
@@ -345,13 +400,36 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                       )}
                       <div>
                         <p className="text-white font-medium">
-                          {loadingHistory ? "Loading..." : availabilityInfo.source}
+                          {loadingHistory ? "Loading..." : sourceInfo.source}
                         </p>
                         <p className="text-gray-300 text-sm">
-                          {loadingHistory ? "" : availabilityInfo.details}
+                          {loadingHistory ? "" : sourceInfo.details}
                         </p>
                       </div>
                     </div>
+                  </div>
+                  {/* ObtainedType */}
+                  <div>
+                    <p className="text-gray-400 text-sm">Obtained Type</p>
+                    <p className="text-white font-medium">{cosmeticData?.obtainedType || 'Unknown'}</p>
+                  </div>
+                  {/* Introduction */}
+                  <div>
+                    <p className="text-gray-400 text-sm">Introduction</p>
+                    <p className="text-white font-medium">{cosmeticData?.introduction ? `C${cosmeticData.introduction.chapter}S${cosmeticData.introduction.season}` : 'Unknown'}</p>
+                  </div>
+                  {/* Shop History */}
+                  <div>
+                    <p className="text-gray-400 text-sm">Shop History</p>
+                    {cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0 ? (
+                      <ul className="text-white text-xs space-y-1 max-h-24 overflow-y-auto">
+                        {cosmeticData.shopHistory.slice(-5).reverse().map((date: string, idx: number) => (
+                          <li key={date}>{formatDate(date)}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-white font-medium">None</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -367,20 +445,6 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
                   <div>
                     <p className="text-gray-400 text-sm">Part of Series</p>
                     <p className="text-white font-medium">{cosmetic.series.value}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Shop History */}
-              {cosmeticData?.shopHistory && cosmeticData.shopHistory.length > 0 && (
-                <div className="bg-slate-800/50 rounded-xl p-4 sm:p-6 space-y-4">
-                  <h3 className="text-lg sm:text-xl font-bold text-white">Recent Shop Appearances</h3>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {cosmeticData.shopHistory.slice(0, 5).map((entry: any, index: number) => (
-                      <div key={index} className="text-sm text-gray-300">
-                        {formatDate(entry.date)}
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}
