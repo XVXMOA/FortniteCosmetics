@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,6 +76,22 @@ export const FilterDropdown = ({
   };
 
   const activeFiltersCount = selectedFilters.rarities.length + selectedFilters.series.length;
+
+  // Close dropdowns on scroll/touchmove
+  useEffect(() => {
+    if (rarityOpen || seriesOpen) {
+      const closeDropdowns = () => {
+        setRarityOpen(false);
+        setSeriesOpen(false);
+      };
+      window.addEventListener('scroll', closeDropdowns, { passive: true });
+      window.addEventListener('touchmove', closeDropdowns, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', closeDropdowns);
+        window.removeEventListener('touchmove', closeDropdowns);
+      };
+    }
+  }, [rarityOpen, seriesOpen]);
 
   if (hidden) return null;
   return (
