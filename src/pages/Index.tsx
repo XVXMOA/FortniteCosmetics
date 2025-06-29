@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { CosmeticGrid } from "@/components/CosmeticGrid";
 import { Randomizer } from "@/components/Randomizer";
@@ -36,6 +35,14 @@ export interface CosmeticItem {
   };
 }
 
+export interface CustomCombo {
+  outfit?: CosmeticItem;
+  backpack?: CosmeticItem;
+  pickaxe?: CosmeticItem;
+  glider?: CosmeticItem;
+  emote?: CosmeticItem;
+}
+
 const Index = () => {
   const [cosmetics, setCosmetics] = useState<CosmeticItem[]>([]);
   const [filteredCosmetics, setFilteredCosmetics] = useState<CosmeticItem[]>([]);
@@ -45,6 +52,7 @@ const Index = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo">("browse");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [filters, setFilters] = useState<{ rarities: string[]; series: string[] }>({
     rarities: [],
     series: []
@@ -70,28 +78,39 @@ const Index = () => {
     "transcendent": 8
   };
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     fetchCosmetics();
   }, []);
 
+  // Only show loading for category changes, not search
   useEffect(() => {
     if (currentView === "browse" && cosmetics.length > 0) {
-      setIsUpdating(true);
-      // Add a small delay to show loading state
-      setTimeout(() => {
+      const shouldShowLoading = currentCategory !== "outfit" || filters.rarities.length > 0 || filters.series.length > 0;
+      
+      if (shouldShowLoading) {
+        setIsUpdating(true);
+        setTimeout(() => {
+          filterCosmetics();
+          setIsUpdating(false);
+        }, 200);
+      } else {
         filterCosmetics();
-        setIsUpdating(false);
-      }, 300);
+      }
     }
-  }, [currentCategory, cosmetics, currentView, searchQuery, filters]);
+  }, [currentCategory, cosmetics, currentView, debouncedSearchQuery, filters]);
 
   useEffect(() => {
     if (currentView === "browse" && filteredCosmetics.length > 0) {
-      setIsUpdating(true);
-      setTimeout(() => {
-        sortCosmetics();
-        setIsUpdating(false);
-      }, 200);
+      sortCosmetics();
     }
   }, [currentSort, filteredCosmetics.length]);
 
@@ -145,10 +164,10 @@ const Index = () => {
     );
 
     // Apply search filter
-    if (searchQuery.trim()) {
+    if (debouncedSearchQuery.trim()) {
       filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
     }
 
@@ -287,7 +306,7 @@ const Index = () => {
   };
 
   // Show loading screen for initial load or when updating
-  if (loading || cosmetics.length === 0 || isUpdating) {
+  if (loading || cosmetics.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <LoadingSpinner />
@@ -319,18 +338,25 @@ const Index = () => {
           </header>
 
           {currentView === "browse" ? (
-            <CosmeticGrid 
-              cosmetics={filteredCosmetics}
-              category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
-              currentSort={currentSort}
-              onSortChange={handleSortChange}
-              searchQuery={searchQuery}
-              onSearchChange={handleSearchChange}
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              availableRarities={getAvailableRarities()}
-              availableSeries={getAvailableSeries()}
-            />
+            <>
+              {isUpdating && (
+                <div className="flex justify-center mb-4">
+                  <LoadingSpinner />
+                </div>
+              )}
+              <CosmeticGrid 
+                cosmetics={filteredCosmetics}
+                category={categories.find(cat => cat.id === currentCategory)?.name || "Items"}
+                currentSort={currentSort}
+                onSortChange={handleSortChange}
+                searchQuery={searchQuery}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                availableRarities={getAvailableRarities()}
+                availableSeries={getAvailableSeries()}
+              />
+            </>
           ) : currentView === "randomizer" ? (
             <Randomizer cosmetics={cosmetics} />
           ) : currentView === "create-combo" ? (
