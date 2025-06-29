@@ -6,6 +6,7 @@ import { SortDropdown, SortOption } from "./SortDropdown";
 import { SearchBar } from "./SearchBar";
 import { FilterDropdown, FilterOptions } from "./FilterDropdown";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface CosmeticGridProps {
   cosmetics: CosmeticItem[];
@@ -34,7 +35,12 @@ export const CosmeticGrid = ({
 }: CosmeticGridProps) => {
   const [selectedCosmetic, setSelectedCosmetic] = useState<CosmeticItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+  const totalPages = Math.ceil(cosmetics.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = cosmetics.slice(startIndex, endIndex);
   const isMobile = useIsMobile();
 
   const handleCosmeticClick = (cosmetic: CosmeticItem) => {
@@ -92,15 +98,60 @@ export const CosmeticGrid = ({
       </div>
       
       <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-        {cosmetics.map((cosmetic, index) => (
+        {currentItems.map((cosmetic, index) => (
           <CosmeticCard 
             key={cosmetic.id} 
             cosmetic={cosmetic} 
-            index={index}
+            index={startIndex + index}
             onClick={handleCosmeticClick}
           />
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNumber;
+                if (totalPages <= 5) {
+                  pageNumber = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNumber = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + i;
+                } else {
+                  pageNumber = currentPage - 2 + i;
+                }
+                return (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(pageNumber)}
+                      isActive={currentPage === pageNumber}
+                      className="cursor-pointer"
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       <CosmeticDetailModal
         cosmetic={selectedCosmetic}
