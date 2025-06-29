@@ -138,16 +138,16 @@ export const ItemShop = () => {
               <div className="space-y-6">
                 {rows.map((row, rowIdx) => (
                   <div key={rowIdx} className="bg-slate-800 rounded-2xl p-6 border border-purple-700 shadow-lg">
-                    <div className="grid grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                       {row.map((entry: any, colIdx) => {
                         if (!entry) return <div key={`empty-${colIdx}`} />;
                         // If bundle, show bundle image and all items
                         if (entry.bundle) {
                           return (
                             <div key={entry.offerId} className="bg-slate-900 rounded-xl p-4 border border-purple-500 shadow flex flex-col items-center w-full">
-                              <img src={entry.bundle?.image || entry.newDisplayAsset?.renderImages?.[0]?.image} alt={entry.bundle?.name} className="w-24 h-24 sm:w-full sm:h-40 object-contain mb-3 rounded-lg bg-slate-800 mx-auto" />
-                              <h4 className="text-lg font-bold text-white text-center mb-1">{entry.bundle?.name}</h4>
-                              <div className="text-gray-300 text-sm mb-2">{entry.bundle?.info}</div>
+                              <img src={entry.bundle?.image || entry.newDisplayAsset?.renderImages?.[0]?.image} alt={entry.bundle?.name} className="w-20 h-20 sm:w-24 sm:h-24 md:w-full md:h-40 object-contain mb-3 rounded-lg bg-slate-800 mx-auto" />
+                              <h4 className="text-sm sm:text-lg font-bold text-white text-center mb-1">{entry.bundle?.name}</h4>
+                              <div className="text-gray-300 text-xs sm:text-sm mb-2 text-center">{entry.bundle?.info}</div>
                               <div className="mb-2">{renderPrice(entry.finalPrice)}</div>
                             </div>
                           );
@@ -160,8 +160,8 @@ export const ItemShop = () => {
                         const cardGlow = rarityGlow[rarity] || 'shadow-[0_0_24px_0_rgba(156,163,175,0.7)]';
                         return (
                           <div key={entry.offerId} className={`${cardBg} ${cardGlow} rounded-xl p-4 border border-blue-500 flex flex-col items-center`}>
-                            <img src={item.images.icon || item.images.smallIcon} alt={item.name} className="w-24 h-24 sm:w-full sm:h-40 object-contain mb-3 rounded-lg bg-slate-800" />
-                            <h4 className="text-lg font-bold text-white text-center mb-1">{item.name}</h4>
+                            <img src={item.images.icon || item.images.smallIcon} alt={item.name} className="w-20 h-20 sm:w-24 sm:h-24 md:w-full md:h-40 object-contain mb-3 rounded-lg bg-slate-800" />
+                            <h4 className="text-sm sm:text-lg font-bold text-white text-center mb-1">{item.name}</h4>
                             <div className="mb-2">{renderPrice(entry.finalPrice)}</div>
                           </div>
                         );
