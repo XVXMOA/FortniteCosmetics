@@ -105,8 +105,8 @@ export const CosmeticDetailModal = ({ cosmetic, isOpen, onClose }: CosmeticDetai
     rarityGradient = rarityColors[rarityKey] || rarityColors.common;
   }
 
-  // Try to get the best image available
-  const fullBodyImage = cosmetic.images?.featured || cosmetic.images?.icon || cosmetic.images?.smallIcon;
+  // Always use the original image from the card
+  const fullBodyImage = cosmetic.images?.icon || cosmetic.images?.smallIcon || cosmetic.images?.featured;
   
   // Fallback image from placeholder service if no image available
   const fallbackImage = `https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=600&fit=crop`;
