@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ArrowUpAZ, ArrowDownAZ, ArrowUpZA, ArrowDownZA, Calendar, Eye } from "lucide-react";
 import {
   DropdownMenu,
@@ -62,6 +62,19 @@ export const SortDropdown = ({ currentSort, onSortChange }: SortDropdownProps) =
     onSortChange(sort);
     setOpen(false);
   };
+
+  // Close dropdown on scroll/touchmove
+  useEffect(() => {
+    if (open) {
+      const closeDropdown = () => setOpen(false);
+      window.addEventListener('scroll', closeDropdown, { passive: true });
+      window.addEventListener('touchmove', closeDropdown, { passive: true });
+      return () => {
+        window.removeEventListener('scroll', closeDropdown);
+        window.removeEventListener('touchmove', closeDropdown);
+      };
+    }
+  }, [open]);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
