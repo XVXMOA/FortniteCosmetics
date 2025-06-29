@@ -1,4 +1,3 @@
-
 import { CosmeticItem } from "@/pages/Index";
 import { cn } from "@/lib/utils";
 
@@ -102,7 +101,6 @@ export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) =>
             src={imageUrl}
             alt={cosmetic.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-6xl">
