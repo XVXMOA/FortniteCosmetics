@@ -21,6 +21,8 @@ interface FilterDropdownProps {
   onFiltersChange: (filters: FilterOptions) => void;
   availableRarities: string[];
   availableSeries: string[];
+  className?: string;
+  hidden?: boolean;
 }
 
 export const FilterDropdown = ({
@@ -28,6 +30,8 @@ export const FilterDropdown = ({
   onFiltersChange,
   availableRarities,
   availableSeries,
+  className = "",
+  hidden = false,
 }: FilterDropdownProps) => {
   const [rarityOpen, setRarityOpen] = useState(false);
   const [seriesOpen, setSeriesOpen] = useState(false);
@@ -73,8 +77,9 @@ export const FilterDropdown = ({
 
   const activeFiltersCount = selectedFilters.rarities.length + selectedFilters.series.length;
 
+  if (hidden) return null;
   return (
-    <div className="flex gap-2">
+    <div className={`d-flex flex-nowrap gap-2 overflow-auto ${className}`} style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Rarity Filter Dropdown */}
       <DropdownMenu open={rarityOpen} onOpenChange={setRarityOpen}>
         <DropdownMenuTrigger asChild>

@@ -315,7 +315,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex overflow-hidden">
       <Sidebar 
         categories={categories}
         currentCategory={currentCategory}
@@ -326,9 +326,9 @@ const Index = () => {
         currentView={currentView}
       />
       
-      <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-64 overflow-hidden">
-        <div className="h-screen overflow-y-auto">
-          <div className="p-4 sm:p-6 max-w-full">
+      <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-64 overflow-hidden w-full">
+        <div className="h-screen overflow-y-auto overflow-x-hidden">
+          <div className="p-4 sm:p-6 w-full max-w-full">
             <header className="text-center mb-6 sm:mb-8">
               <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 Fortnite Vault
