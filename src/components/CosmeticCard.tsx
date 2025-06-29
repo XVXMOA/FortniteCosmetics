@@ -134,7 +134,7 @@ export const CosmeticCard = ({ cosmetic, index, onClick }: CosmeticCardProps) =>
         {/* Last Seen and Source */}
         <div className="flex flex-col gap-1 mb-2">
           <span className="text-[11px] text-gray-400">
-            <span className="font-semibold text-white">Last Seen:</span> {cosmetic.introduction ? `C${cosmetic.introduction.chapter}S${cosmetic.introduction.season}` : 'Unknown'}
+            <span className="font-semibold text-white">Released:</span> {cosmetic.introduction ? `C${cosmetic.introduction.chapter}S${cosmetic.introduction.season}` : 'Unknown'}
           </span>
           <span className="text-[11px] text-gray-400">
             <span className="font-semibold text-white">Source:</span> {getSourceLabel(cosmetic)}
