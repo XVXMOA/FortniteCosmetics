@@ -97,7 +97,7 @@ export const CosmeticGrid = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
         {currentItems.map((cosmetic, index) => (
           <CosmeticCard 
             key={cosmetic.id} 
@@ -153,7 +153,7 @@ export const CosmeticGrid = ({
             </Pagination>
           </div>
           {/* Invisible footer spacer for mobile browser bar */}
-          <div className="w-full h-8 sm:h-0 pointer-events-none select-none" style={{ background: 'transparent' }} />
+          <div className="w-full h-16 sm:h-0 pointer-events-none select-none" style={{ background: 'transparent' }} />
         </>
       )}
 
