@@ -5,6 +5,8 @@ import { Randomizer } from "@/components/Randomizer";
 import { SavedCombos } from "@/components/SavedCombos";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { UserMenu } from "@/components/UserMenu";
 import { SortOption } from "@/components/SortDropdown";
 import { CreateCombo } from "@/components/CreateCombo";
 import { PlayerStatsChecker } from "@/components/PlayerStatsChecker";
@@ -45,7 +47,8 @@ export interface CustomCombo {
   emote?: CosmeticItem;
 }
 
-const Index = () => {
+const IndexPage = () => {
+  const { user } = useAuth();
   const [cosmetics, setCosmetics] = useState<CosmeticItem[]>([]);
   const [filteredCosmetics, setFilteredCosmetics] = useState<CosmeticItem[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>("outfit");
@@ -341,13 +344,21 @@ const Index = () => {
       <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-64 overflow-hidden w-full">
         <div className="h-screen overflow-y-auto overflow-x-hidden">
           <div className="p-4 sm:p-6 w-full max-w-full">
-            <header className="text-center mb-6 sm:mb-8">
-              <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Fortnite Vault
-              </h1>
-              <p className="text-lg sm:text-xl text-gray-300">
-                Discover and randomize your perfect Fortnite loadout
-              </p>
+            <header className="flex items-center justify-between mb-6 sm:mb-8">
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-3xl sm:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Fortnite Vault
+                  </h1>
+                  <p className="text-lg sm:text-xl text-gray-300">
+                    Discover and randomize your perfect Fortnite loadout
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {user && <UserMenu />}
+              </div>
             </header>
 
             {currentView === "browse" ? (
@@ -391,4 +402,6 @@ const Index = () => {
   );
 };
 
-export default Index;
+export const Index = IndexPage;
+
+export default IndexPage;

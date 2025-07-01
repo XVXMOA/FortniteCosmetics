@@ -5,6 +5,8 @@ import { ArrowLeft, ArrowRight, Check, RotateCcw, Sparkles } from "lucide-react"
 import { CosmeticCard } from "./CosmeticCard";
 import { ComboViewer3D } from "./ComboViewer3D";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { SearchBar } from "./SearchBar";
 import { SortDropdown, SortOption } from "./SortDropdown";
 import { FilterDropdown, FilterOptions } from "./FilterDropdown";
@@ -43,6 +45,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
   const [filters, setFilters] = useState<FilterOptions>({ rarities: [], series: [] });
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const steps: { key: ComboStep; label: string; required: boolean }[] = [
     { key: "outfit", label: "Outfit", required: true },
@@ -206,25 +209,54 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
     return currentStep === enabledSteps[enabledSteps.length - 1].key;
   };
 
-  const saveCombo = () => {
-    const comboName = `Custom Combo ${Date.now()}`;
-    const savedCombo = {
-      id: Date.now().toString(),
-      name: comboName,
-      ...selectedCombo,
-      savedAt: new Date().toISOString(),
-    };
+  const saveCombo = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to save combos.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const existingSaved = localStorage.getItem('fortnite-saved-combos');
-    const savedCombos = existingSaved ? JSON.parse(existingSaved) : [];
-    savedCombos.push(savedCombo);
+    const comboName = `Custom Combo ${Date.now()}`;
     
-    localStorage.setItem('fortnite-saved-combos', JSON.stringify(savedCombos));
-    
-    toast({
-      title: "Combo Saved!",
-      description: `Your custom combo has been saved.`,
-    });
+    try {
+      const { error } = await supabase.from('combos').insert({
+        user_id: user.id,
+        name: comboName,
+        outfit_id: selectedCombo.outfit?.id,
+        outfit_name: selectedCombo.outfit?.name,
+        outfit_image: selectedCombo.outfit?.images?.icon,
+        backpack_id: selectedCombo.backpack?.id,
+        backpack_name: selectedCombo.backpack?.name,
+        backpack_image: selectedCombo.backpack?.images?.icon,
+        pickaxe_id: selectedCombo.pickaxe?.id,
+        pickaxe_name: selectedCombo.pickaxe?.name,
+        pickaxe_image: selectedCombo.pickaxe?.images?.icon,
+        glider_id: selectedCombo.glider?.id,
+        glider_name: selectedCombo.glider?.name,
+        glider_image: selectedCombo.glider?.images?.icon,
+        emote_id: selectedCombo.emote?.id,
+        emote_name: selectedCombo.emote?.name,
+        emote_image: selectedCombo.emote?.images?.icon,
+        is_public: false,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Combo Saved!",
+        description: "Your custom combo has been saved to your account.",
+      });
+    } catch (error) {
+      console.error('Error saving combo:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save combo. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getAvailableRarities = () => {

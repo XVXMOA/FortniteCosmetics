@@ -9,7 +9,170 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      combo_likes: {
+        Row: {
+          combo_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          combo_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          combo_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_likes_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      combos: {
+        Row: {
+          backpack_id: string | null
+          backpack_image: string | null
+          backpack_name: string | null
+          created_at: string
+          description: string | null
+          emote_id: string | null
+          emote_image: string | null
+          emote_name: string | null
+          glider_id: string | null
+          glider_image: string | null
+          glider_name: string | null
+          id: string
+          is_public: boolean
+          likes_count: number
+          name: string
+          outfit_id: string | null
+          outfit_image: string | null
+          outfit_name: string | null
+          pickaxe_id: string | null
+          pickaxe_image: string | null
+          pickaxe_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          backpack_id?: string | null
+          backpack_image?: string | null
+          backpack_name?: string | null
+          created_at?: string
+          description?: string | null
+          emote_id?: string | null
+          emote_image?: string | null
+          emote_name?: string | null
+          glider_id?: string | null
+          glider_image?: string | null
+          glider_name?: string | null
+          id?: string
+          is_public?: boolean
+          likes_count?: number
+          name: string
+          outfit_id?: string | null
+          outfit_image?: string | null
+          outfit_name?: string | null
+          pickaxe_id?: string | null
+          pickaxe_image?: string | null
+          pickaxe_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          backpack_id?: string | null
+          backpack_image?: string | null
+          backpack_name?: string | null
+          created_at?: string
+          description?: string | null
+          emote_id?: string | null
+          emote_image?: string | null
+          emote_name?: string | null
+          glider_id?: string | null
+          glider_image?: string | null
+          glider_name?: string | null
+          id?: string
+          is_public?: boolean
+          likes_count?: number
+          name?: string
+          outfit_id?: string | null
+          outfit_image?: string | null
+          outfit_name?: string | null
+          pickaxe_id?: string | null
+          pickaxe_image?: string | null
+          pickaxe_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friends: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
