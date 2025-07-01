@@ -422,7 +422,7 @@ export const CreateCombo = ({ cosmetics, onBack }: CreateComboProps) => {
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-5 h-5 text-yellow-400" />
             <h3 className="text-xl font-semibold text-white">
-              Recommended Items from {selectedCombo.outfit.series?.displayValue || 'Same Set'}
+              Recommended Items from {selectedCombo.outfit.series?.value || 'Same Set'}
             </h3>
           </div>
           <p className="text-gray-300 mb-4">
