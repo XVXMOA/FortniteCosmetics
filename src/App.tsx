@@ -4,6 +4,7 @@ import { Auth } from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import ProfilePage from "@/pages/Profile";
 
 function App() {
   const { user, loading } = useAuth();
@@ -20,6 +21,7 @@ function App() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={user ? <Index /> : <Auth />} />
+      <Route path="/profile" element={<ProfilePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

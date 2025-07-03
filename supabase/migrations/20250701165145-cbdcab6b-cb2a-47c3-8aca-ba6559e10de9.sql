@@ -6,7 +6,8 @@ CREATE TABLE public.profiles (
   avatar_url TEXT,
   bio TEXT,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  last_username_change timestamp with time zone
 );
 
 -- Enable RLS on profiles

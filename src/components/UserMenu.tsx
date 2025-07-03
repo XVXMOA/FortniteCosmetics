@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { User, LogOut, Settings, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Profile {
   id: string;
@@ -24,6 +25,7 @@ interface Profile {
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,7 +50,7 @@ export const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full" onClick={() => navigate('/profile')}>
           <Avatar className="h-10 w-10">
             <AvatarImage src={profile.avatar_url} alt={profile.display_name} />
             <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
@@ -69,7 +71,7 @@ export const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-700" />
-        <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700">
+        <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700" onClick={() => navigate('/profile')}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
