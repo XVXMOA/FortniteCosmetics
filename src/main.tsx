@@ -6,7 +6,7 @@ import App from "./App.tsx";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./index.css";
-import { logVisitorEvent } from "./utils/ipLogger";
+// import { logVisitorEvent } from "./utils/ipLogger";
 
 // Always allow scroll/pull-to-refresh on mobile
 if (typeof document !== 'undefined') {
@@ -14,7 +14,7 @@ if (typeof document !== 'undefined') {
 }
 
 // Log on site arrival (once per session)
-logVisitorEvent("site_arrival");
+// logVisitorEvent("site_arrival");
 
 const queryClient = new QueryClient();
 

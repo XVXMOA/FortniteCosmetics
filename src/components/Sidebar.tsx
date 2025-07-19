@@ -160,6 +160,7 @@ export const Sidebar = ({
               {/* Player Stats button */}
               <button
                 onClick={() => {
+                  logVisitorEvent("player_stats_button");
                   if (typeof onPlayerStatsView === 'function') onPlayerStatsView();
                   setIsOpen(false);
                 }}
