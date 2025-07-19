@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logVisitorEvent } from "../utils/ipLogger";
 
 interface Category {
   id: string;
@@ -160,7 +159,6 @@ export const Sidebar = ({
               {/* Player Stats button */}
               <button
                 onClick={() => {
-                  logVisitorEvent("player_stats_button");
                   if (typeof onPlayerStatsView === 'function') onPlayerStatsView();
                   setIsOpen(false);
                 }}
