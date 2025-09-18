@@ -52,7 +52,7 @@ const IndexPage = () => {
   const [cosmetics, setCosmetics] = useState<CosmeticItem[]>([]);
   const [filteredCosmetics, setFilteredCosmetics] = useState<CosmeticItem[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>("outfit");
-  const [currentSort, setCurrentSort] = useState<SortOption>("alphabetical-a-z");
+  const [currentSort, setCurrentSort] = useState<SortOption>("most-recent");
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentView, setCurrentView] = useState<"browse" | "randomizer" | "saved-combos" | "create-combo" | "player-stats" | "item-shop">("browse");
