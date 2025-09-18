@@ -99,7 +99,7 @@ export const FilterDropdown = ({
       {/* Rarity Filter Dropdown */}
       <DropdownMenu open={rarityOpen} onOpenChange={setRarityOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+          <Button variant="outline" className="bg-slate-800/50 border-slate-700 text-white hover:bg-slate-700/50">
             <Filter className="w-4 h-4 mr-2" />
             Rarities
             {selectedFilters.rarities.length > 0 && (
@@ -138,7 +138,7 @@ export const FilterDropdown = ({
       {availableSeries.length > 0 && (
         <DropdownMenu open={seriesOpen} onOpenChange={setSeriesOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+            <Button variant="outline" className="bg-slate-800/50 border-slate-700 text-white hover:bg-slate-700/50">
               <Filter className="w-4 h-4 mr-2" />
               Series
               {selectedFilters.series.length > 0 && (

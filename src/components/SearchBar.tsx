@@ -24,7 +24,7 @@ export const SearchBar = ({ value, onChange, placeholder = "Search..." }: Search
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="pl-10 pr-10 bg-slate-800 border-gray-600 text-white placeholder:text-gray-400 w-full"
+        className="pl-10 pr-10 bg-slate-800 border-slate-700 text-white placeholder:text-gray-400 w-full"
       />
       {value && (
         <Button
