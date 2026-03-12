@@ -6,6 +6,8 @@ This repository contains a React/TypeScript web app built with Vite, Tailwind CS
 
 This project does **not** interact with Fortnite game servers directly and does **not** provide cheats, hacks, exploits, or ways to unlock items in the game itself. It’s meant for cosmetic data browsing and display only.
 
+Check out the live site here: [FortniteCosmetics](https://fortnitecosmetics.netlify.app)
+
 ## 🚀 Features
 
 - Built with **Vite**, **React**, and **TypeScript**.
